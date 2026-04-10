@@ -1,4 +1,3 @@
-// Sidebar.tsx - Fixed drag-and-drop
 "use client";
 import { Type } from "lucide-react";
 import {
@@ -30,6 +29,8 @@ import {
   Waves,
   Usb,
   Share2,
+  User,
+  Building2,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -58,7 +59,13 @@ type DeviceType =
   | "gateway"
   | "ids"
   | "ips"
-  | "vpn-concentrator";
+  | "vpn-concentrator"
+  | "user"
+  | "building"
+  | "internet"
+  | "dns"
+  | "dhcp"
+  | "proxy";
 
 type CableType =
   | "ethernet"
@@ -172,6 +179,23 @@ const devices: Device[] = [
     icon: Settings,
     category: "Specialized",
   },
+
+  { type: "user", label: "User", icon: User, category: "End Devices" },
+  {
+    type: "building",
+    label: "Building",
+    icon: Building2,
+    category: "Infrastructure",
+  },
+  {
+    type: "internet",
+    label: "Internet",
+    icon: Globe,
+    category: "Infrastructure",
+  },
+  { type: "dns", label: "DNS Server", icon: Globe, category: "Servers" },
+  { type: "dhcp", label: "DHCP Server", icon: Settings, category: "Servers" },
+  { type: "proxy", label: "Proxy Server", icon: Shield, category: "Security" },
 
   { type: "text" as DeviceType, label: "Text", icon: Type, category: "Tools" },
 ];

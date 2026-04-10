@@ -34,6 +34,8 @@ import {
   Cpu,
   RefreshCw,
   GlobeLock,
+  User,
+  Building2,
 } from "lucide-react";
 
 interface CustomNodeProps {
@@ -67,6 +69,8 @@ export default function CustomNode({ data, selected }: CustomNodeProps) {
       smartphone: Smartphone,
       printer: Printer,
       "ip-phone": Phone,
+      user: User,
+      building: Building2,
 
       // ======================
       // Infrastructure
@@ -82,6 +86,7 @@ export default function CustomNode({ data, selected }: CustomNodeProps) {
       modem: Router,
       gateway: Globe,
       controller: Cpu,
+      internet: Globe,
 
       // ======================
       // Security

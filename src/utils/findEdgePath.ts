@@ -1,8 +1,4 @@
-export function findEdgePath(
-  edges: any[],
-  source: string,
-  target: string,
-): string[] | null {
+export function findEdgePath(edges: any[], source: string, target: string) {
   const visited = new Set<string>();
   const queue: string[][] = [[source]];
 

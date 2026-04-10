@@ -13,10 +13,10 @@ import ReactFlow, {
   ReactFlowProvider,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import type { Packet, NetworkNodeData } from "@/types/network";
+import type { NetworkNodeData } from "@/types/network";
 import type { Node } from "reactflow";
 import TextNode from "./TextNode";
-
+import { findEdgePath } from "../../utils/findEdgePath";
 import CustomNode from "./CustomNode";
 
 export type DeviceType =
@@ -45,6 +45,7 @@ export type DeviceType =
   | "ids"
   | "ips"
   | "vpn-concentrator";
+
 export type CableType =
   | "ethernet"
   | "fiber"
@@ -63,7 +64,23 @@ const nodeTypes = {
   text: TextNode,
 };
 
-const getCableStyle = (type: string) => {};
+type Packet = {
+  path: string[];
+  index: number;
+};
+
+const getCableStyle = (type: string) => {
+  switch (type) {
+    case "fiber":
+      return { stroke: "#00A5E0", strokeWidth: 3 };
+    case "ethernet":
+      return { stroke: "#10B981", strokeWidth: 2 };
+    case "coaxial":
+      return { stroke: "#F59E0B", strokeWidth: 2 };
+    default:
+      return { stroke: "#6B7280", strokeWidth: 2 };
+  }
+};
 
 const getDeviceLabel = (type: DeviceType): string => {
   const labels: Record<string, string> = {
@@ -72,11 +89,8 @@ const getDeviceLabel = (type: DeviceType): string => {
   return labels[type] || type.toUpperCase();
 };
 
-const getDeviceIcon = (type: DeviceType): any => {
-  if (type === "text") return null;
-
-  const icons: Record<string, any> = {};
-  return icons[type] || Monitor;
+const getDeviceIcon = (): any => {
+  return null;
 };
 
 interface NetworkCanvasProps {
@@ -86,7 +100,7 @@ interface NetworkCanvasProps {
 export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const [packet, setPacket] = useState<Packet | null>(null);
+
   const [connectionMode, setConnectionMode] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [sourceNodeId, setSourceNodeId] = useState<string | null>(null);
@@ -94,6 +108,15 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
+  const [packet, setPacket] = useState<Packet | null>(null);
+  const [packetPosition, setPacketPosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+
+  const initialNodes: Node<NetworkNodeData>[] = [];
+
+  const getNode = (id: string) => nodes.find((n) => n.id === id);
 
   // Listen for cable drag events from sidebar
   useEffect(() => {
@@ -328,25 +351,63 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
     setSelectedNodeId(null);
   }, []);
 
-  const sendPacket = useCallback(() => {
+  const animatePacket = (path: string[], index: number) => {
+    if (index >= path.length - 1) {
+      setPacket(null);
+      setPacketPosition(null);
+      return;
+    }
+
+    const from = reactFlowInstance.getNode(path[index]);
+    const to = reactFlowInstance.getNode(path[index + 1]);
+
+    if (!from || !to) return;
+
+    const start = from.position;
+    const end = to.position;
+
+    const duration = 600;
+    const startTime = performance.now();
+
+    const animate = (time: number) => {
+      const progress = Math.min((time - startTime) / duration, 1);
+
+      setPacketPosition({
+        x: start.x + (end.x - start.x) * progress,
+        y: start.y + (end.y - start.y) * progress,
+      });
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        setPacket({ path, index: index + 1 });
+        animatePacket(path, index + 1);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  };
+
+  const sendPacket = () => {
     if (nodes.length < 2) return;
 
-    const path = [nodes[0].id, nodes[1].id];
+    const source = nodes[0].id;
+    const target = nodes[nodes.length - 1].id;
 
-    setPacket({ path, index: 0 });
+    const path = findEdgePath(edges, source, target);
 
-    let i = 0;
-    const interval = setInterval(() => {
-      i++;
-      setPacket({
-        path,
-        index: i,
-      });
-      if (i >= path.length - 1) {
-        clearInterval(interval);
-      }
-    }, 800);
-  }, [nodes]);
+    if (!path || path.length < 2) {
+      console.log("No valid path found");
+      return;
+    }
+
+    setPacket({
+      path,
+      index: 0,
+    });
+
+    animatePacket(path, 0);
+  };
 
   return (
     <div
@@ -361,7 +422,7 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
       <div className="absolute top-4 right-4 z-50 flex gap-2">
         <button
           onClick={sendPacket}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition shadow-lg"
+          className="px-4 py-2 bg-[#00A5E0] hover:bg-[#00A5E0]/90 rounded-lg font-semibold transition shadow-lg"
         >
           Send Packet
         </button>
@@ -422,6 +483,16 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
 
       {/* CANVAS */}
       <div ref={reactFlowWrapper} className="w-full h-full">
+        {packetPosition && (
+          <div
+            className="absolute w-3 h-3 bg-yellow-400 rounded-full z-50 shadow-lg"
+            style={{
+              left: packetPosition.x,
+              top: packetPosition.y,
+              transform: "translate(-50%, -50%)",
+            }}
+          />
+        )}
         <ReactFlow
           nodes={nodes}
           edges={edges}

@@ -10,7 +10,7 @@ PacketFlow is a lightweight, browser-based network simulation platform designed 
 - 🧬 OSI layer visualization
 - 💻 Simple CLI commands (e.g. ping)
 
-## 🎯 هدف (Goal)
+## 🎯 (Goal)
 
 To provide an accessible alternative to heavy simulation tools like Cisco Packet Tracer, especially for students in resource-constrained environments.
 

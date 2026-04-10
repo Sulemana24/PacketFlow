@@ -25,10 +25,13 @@ export type DeviceType =
   | "ips"
   | "vpn-concentrator";
 
-export interface NetworkNodeData {
+export type NetworkNodeData = {
   type: DeviceType;
   label: string;
-}
+  ipAddress?: string;
+  macAddress?: string;
+  status?: string;
+};
 
 export interface Packet {
   path: string[];
