@@ -1,5 +1,7 @@
+import { Edge } from "reactflow";
+
 export function findEdgePath(
-  edges: any[],
+  edges: Edge[],
   source: string,
   target: string,
 ): string[] | null {
@@ -20,7 +22,9 @@ export function findEdgePath(
         .map((e) => e.target);
 
       for (const n of neighbors) {
-        queue.push([...path, n]);
+        if (n) {
+          queue.push([...path, n]);
+        }
       }
     }
   }

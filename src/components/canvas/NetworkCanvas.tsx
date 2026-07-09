@@ -11,6 +11,7 @@ import ReactFlow, {
   Edge,
   MarkerType,
   ReactFlowProvider,
+  ReactFlowInstance,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import type { NetworkNodeData } from "@/types/network";
@@ -19,45 +20,70 @@ import TextNode from "./TextNode";
 import { findEdgePath } from "../../utils/findEdgePath";
 import CustomNode from "./CustomNode";
 
+// ===== COMPREHENSIVE DEVICE TYPES =====
 export type DeviceType =
-  | "pc"
+  // Core Network Devices
   | "router"
   | "switch"
   | "firewall"
-  | "server"
-  | "laptop"
-  | "printer"
-  | "wireless-ap"
-  | "cloud"
   | "modem"
   | "hub"
   | "bridge"
+  | "repeater"
+  | "gateway"
+  | "multilayer-switch"
   | "load-balancer"
-  | "nas"
+  // End Devices
+  | "pc"
+  | "server"
+  | "laptop"
+  | "printer"
   | "ip-phone"
   | "tablet"
   | "smartphone"
+  // Wireless
+  | "wireless-ap"
   | "access-point"
   | "controller"
-  | "multilayer-switch"
-  | "repeater"
-  | "gateway"
+  // Security
   | "ids"
   | "ips"
-  | "vpn-concentrator";
+  | "vpn-concentrator"
+  // Storage
+  | "nas"
+  | "san-switch"
+  // Cloud
+  | "cloud"
+  // Other
+  | "hub"
+  | "bridge";
 
+// ===== COMPREHENSIVE CABLE TYPES =====
 export type CableType =
+  // Copper
   | "ethernet"
-  | "fiber"
   | "coaxial"
   | "serial"
   | "usb"
-  | "hdmi"
-  | "vga"
-  | "dvi"
+  | "usb-c"
   | "thunderbolt"
+  | "firewire"
+  // Fiber
+  | "fiber-single-mode"
+  | "fiber-multi-mode"
+  // Power
+  | "power"
+  // Display
+  | "hdmi"
+  | "displayport"
+  | "dvi"
+  | "vga"
+  // Storage
   | "sata"
-  | "power";
+  | "sas"
+  // Other
+  | "console"
+  | "patch-cord";
 
 const nodeTypes = {
   custom: CustomNode,
@@ -69,28 +95,153 @@ type Packet = {
   index: number;
 };
 
-const getCableStyle = (type: string) => {
-  switch (type) {
-    case "fiber":
-      return { stroke: "#00A5E0", strokeWidth: 3 };
-    case "ethernet":
-      return { stroke: "#10B981", strokeWidth: 2 };
-    case "coaxial":
-      return { stroke: "#F59E0B", strokeWidth: 2 };
-    default:
-      return { stroke: "#6B7280", strokeWidth: 2 };
-  }
+// ===== CABLE STYLE CONFIGURATION =====
+const getCableStyle = (type: CableType) => {
+  const styles: Record<
+    CableType,
+    { stroke: string; strokeWidth: number; strokeDasharray?: string }
+  > = {
+    // Copper cables
+    ethernet: { stroke: "#10B981", strokeWidth: 2 },
+    coaxial: { stroke: "#F59E0B", strokeWidth: 2.5 },
+    serial: { stroke: "#8B5CF6", strokeWidth: 2 },
+    usb: { stroke: "#3B82F6", strokeWidth: 2 },
+    "usb-c": { stroke: "#6366F1", strokeWidth: 2 },
+    thunderbolt: { stroke: "#EC4899", strokeWidth: 2 },
+    firewire: { stroke: "#F472B6", strokeWidth: 2 },
+    // Fiber cables
+    "fiber-single-mode": { stroke: "#00A5E0", strokeWidth: 3 },
+    "fiber-multi-mode": { stroke: "#06B6D4", strokeWidth: 2.5 },
+    // Power
+    power: { stroke: "#EF4444", strokeWidth: 3 },
+    // Display
+    hdmi: { stroke: "#F97316", strokeWidth: 2.5 },
+    displayport: { stroke: "#A855F7", strokeWidth: 2 },
+    dvi: { stroke: "#8B5CF6", strokeWidth: 2 },
+    vga: { stroke: "#6B7280", strokeWidth: 2 },
+    // Storage
+    sata: { stroke: "#22D3EE", strokeWidth: 2 },
+    sas: { stroke: "#2DD4BF", strokeWidth: 2 },
+    // Other
+    console: { stroke: "#FCD34D", strokeWidth: 2, strokeDasharray: "5,5" },
+    "patch-cord": { stroke: "#34D399", strokeWidth: 1.5 },
+  };
+  return styles[type] || { stroke: "#6B7280", strokeWidth: 2 };
+};
+
+// ===== DEVICE ICONS AND LABELS =====
+const getDeviceIcon = (type: DeviceType): string => {
+  const icons: Record<DeviceType, string> = {
+    // Core Network
+    router: "📡",
+    switch: "🔀",
+    firewall: "🛡️",
+    modem: "📶",
+    hub: "🔁",
+    bridge: "🌉",
+    repeater: "📤",
+    gateway: "🚪",
+    "multilayer-switch": "🔀",
+    "load-balancer": "⚖️",
+    // End Devices
+    pc: "💻",
+    server: "🖥️",
+    laptop: "💻",
+    printer: "🖨️",
+    "ip-phone": "📞",
+    tablet: "📱",
+    smartphone: "📱",
+    // Wireless
+    "wireless-ap": "📶",
+    "access-point": "📶",
+    controller: "🎮",
+    // Security
+    ids: "🔍",
+    ips: "🛡️",
+    "vpn-concentrator": "🔐",
+    // Storage
+    nas: "💾",
+    "san-switch": "💾",
+    // Cloud
+    cloud: "☁️",
+  };
+  return icons[type] || "📦";
 };
 
 const getDeviceLabel = (type: DeviceType): string => {
-  const labels: Record<string, string> = {
-    text: "Text",
+  const labels: Record<DeviceType, string> = {
+    // Core Network
+    router: "Router",
+    switch: "Switch",
+    firewall: "Firewall",
+    modem: "Modem",
+    hub: "Hub",
+    bridge: "Bridge",
+    repeater: "Repeater",
+    gateway: "Gateway",
+    "multilayer-switch": "MLS",
+    "load-balancer": "Load Balancer",
+    // End Devices
+    pc: "PC",
+    server: "Server",
+    laptop: "Laptop",
+    printer: "Printer",
+    "ip-phone": "IP Phone",
+    tablet: "Tablet",
+    smartphone: "Smartphone",
+    // Wireless
+    "wireless-ap": "WAP",
+    "access-point": "AP",
+    controller: "Controller",
+    // Security
+    ids: "IDS",
+    ips: "IPS",
+    "vpn-concentrator": "VPN",
+    // Storage
+    nas: "NAS",
+    "san-switch": "SAN Switch",
+    // Cloud
+    cloud: "Cloud",
   };
   return labels[type] || type.toUpperCase();
 };
 
-const getDeviceIcon = (): any => {
-  return null;
+const getDeviceColor = (type: DeviceType): string => {
+  const colors: Record<DeviceType, string> = {
+    // Core Network - Blue family
+    router: "#3B82F6",
+    switch: "#10B981",
+    firewall: "#EF4444",
+    modem: "#F59E0B",
+    hub: "#8B5CF6",
+    bridge: "#EC4899",
+    repeater: "#F97316",
+    gateway: "#06B6D4",
+    "multilayer-switch": "#14B8A6",
+    "load-balancer": "#6366F1",
+    // End Devices - Green/Teal family
+    pc: "#34D399",
+    server: "#60A5FA",
+    laptop: "#34D399",
+    printer: "#F472B6",
+    "ip-phone": "#A78BFA",
+    tablet: "#60A5FA",
+    smartphone: "#60A5FA",
+    // Wireless - Yellow/Orange
+    "wireless-ap": "#FCD34D",
+    "access-point": "#FCD34D",
+    controller: "#F59E0B",
+    // Security - Red/Pink
+    ids: "#F87171",
+    ips: "#FCA5A5",
+    "vpn-concentrator": "#EC4899",
+    // Storage - Cyan
+    nas: "#67E8F9",
+    "san-switch": "#67E8F9",
+    // Cloud - Purple
+    cloud: "#A78BFA",
+  };
+  return colors[type] || "#6B7280";
 };
 
 interface NetworkCanvasProps {
@@ -101,22 +252,26 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
-  const [connectionMode, setConnectionMode] = useState<string | null>(null);
+  const [connectionMode, setConnectionMode] = useState<CableType | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [sourceNodeId, setSourceNodeId] = useState<string | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
-  const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
+  const [reactFlowInstance, setReactFlowInstance] =
+    useState<ReactFlowInstance | null>(null);
   const [packet, setPacket] = useState<Packet | null>(null);
   const [packetPosition, setPacketPosition] = useState<{
     x: number;
     y: number;
   } | null>(null);
 
-  const initialNodes: Node<NetworkNodeData>[] = [];
-
-  const getNode = (id: string) => nodes.find((n) => n.id === id);
+  // Use a ref to store animation frame ID for cleanup
+  const animationRef = useRef<number | null>(null);
+  // Use a ref to store the animation function for recursive calls
+  const animatePacketRef = useRef<
+    ((path: string[], index: number) => void) | null
+  >(null);
 
   // Listen for cable drag events from sidebar
   useEffect(() => {
@@ -125,7 +280,7 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
       const cableType = event.dataTransfer?.getData("cable-type");
 
       if (itemType === "cable" && cableType) {
-        setConnectionMode(cableType);
+        setConnectionMode(cableType as CableType);
         document.body.style.cursor = "crosshair";
       }
     };
@@ -140,35 +295,54 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
 
   const onConnect = useCallback(
     (connection: Connection) => {
-      const cableType = connection.data?.cableType || "ethernet";
+      if (!connection.source || !connection.target) return;
+
+      const cableType = connectionMode || "ethernet";
+
       const newEdge: Edge = {
-        ...connection,
         id: `edge-${connection.source}-${connection.target}-${crypto.randomUUID()}`,
+        source: connection.source,
+        target: connection.target,
+        sourceHandle: connection.sourceHandle ?? undefined,
+        targetHandle: connection.targetHandle ?? undefined,
         type: "smoothstep",
         markerEnd: { type: MarkerType.ArrowClosed, color: "#00A5E0" },
         style: getCableStyle(cableType),
-        label: cableType.toUpperCase(),
+        label: cableType.toUpperCase().replace("-", " "),
         labelStyle: { fill: "#9CA3AF", fontSize: 10 },
         labelBgStyle: { fill: "#1F2937" },
         data: { cableType },
       };
+
       setEdges((eds) => addEdge(newEdge, eds));
+      setConnectionMode(null);
     },
-    [setEdges],
+    [setEdges, connectionMode],
   );
 
-  // Handle node click for connection mode
+  const resetConnectionMode = useCallback(() => {
+    setConnectionMode(null);
+    setIsConnecting(false);
+    setSourceNodeId(null);
+    setSelectedNodeId(null);
+    document.body.style.cursor = "default";
+    setNodes((nds) =>
+      nds.map((n) => ({
+        ...n,
+        style: { ...n.style, border: "2px solid #00A5E0", boxShadow: "none" },
+      })),
+    );
+  }, [setNodes]);
+
   const onNodeClick = useCallback(
     (event: React.MouseEvent, node: Node) => {
       event.stopPropagation();
 
       if (connectionMode) {
         if (!isConnecting) {
-          // First node selected
           setSourceNodeId(node.id);
           setIsConnecting(true);
           setSelectedNodeId(node.id);
-          // Visual feedback - highlight node
           setNodes((nds) =>
             nds.map((n) => ({
               ...n,
@@ -187,7 +361,6 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
             })),
           );
         } else {
-          // Second node selected - create connection
           if (sourceNodeId && sourceNodeId !== node.id) {
             const newEdge: Edge = {
               id: `edge-${sourceNodeId}-${node.id}-${crypto.randomUUID()}`,
@@ -196,38 +369,28 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
               type: "smoothstep",
               markerEnd: { type: MarkerType.ArrowClosed, color: "#00A5E0" },
               style: getCableStyle(connectionMode),
-              label: connectionMode.toUpperCase(),
+              label: connectionMode.toUpperCase().replace("-", " "),
               labelStyle: { fill: "#9CA3AF", fontSize: 10 },
               labelBgStyle: { fill: "#1F2937" },
               data: { cableType: connectionMode },
             };
             setEdges((eds) => eds.concat(newEdge));
           }
-          // Reset connection mode
           resetConnectionMode();
         }
       } else {
-        // Regular selection for deletion
         setSelectedNodeId(node.id);
       }
     },
-    [connectionMode, isConnecting, sourceNodeId, setNodes, setEdges],
+    [
+      connectionMode,
+      isConnecting,
+      sourceNodeId,
+      setNodes,
+      setEdges,
+      resetConnectionMode,
+    ],
   );
-
-  const resetConnectionMode = useCallback(() => {
-    setConnectionMode(null);
-    setIsConnecting(false);
-    setSourceNodeId(null);
-    setSelectedNodeId(null);
-    document.body.style.cursor = "default";
-    // Remove highlight from all nodes
-    setNodes((nds) =>
-      nds.map((n) => ({
-        ...n,
-        style: { ...n.style, border: "2px solid #00A5E0", boxShadow: "none" },
-      })),
-    );
-  }, [setNodes]);
 
   const onDrop = useCallback(
     (event: React.DragEvent) => {
@@ -254,7 +417,6 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
         console.log(`✅ Adding device: ${deviceType}`);
 
         if (deviceType === "text") {
-          // Create a text node
           const newNode: Node = {
             id: crypto.randomUUID(),
             type: "text",
@@ -273,20 +435,20 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
           };
           setNodes((nds) => [...nds, newNode]);
         } else {
-          // Create a regular device node
+          const typedDeviceType = deviceType as DeviceType;
           const newNode: Node<NetworkNodeData> = {
             id: crypto.randomUUID(),
             type: "custom",
             position,
             data: {
-              type: deviceType as DeviceType,
-              label: getDeviceLabel(deviceType as DeviceType),
-              icon: getDeviceIcon(deviceType as DeviceType),
+              type: typedDeviceType,
+              label: getDeviceLabel(typedDeviceType),
+              icon: getDeviceIcon(typedDeviceType),
             },
             style: {
               background: "#1F2937",
               color: "#fff",
-              border: "2px solid #00A5E0",
+              border: `2px solid ${getDeviceColor(typedDeviceType)}`,
               borderRadius: "8px",
               padding: "10px",
               width: 130,
@@ -300,7 +462,7 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
       // Handle cable drop
       else if (itemType === "cable" && cableType) {
         console.log(`🔌 Enabling cable mode: ${cableType}`);
-        setConnectionMode(cableType);
+        setConnectionMode(cableType as CableType);
         document.body.style.cursor = "crosshair";
       }
     },
@@ -312,20 +474,17 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
     event.stopPropagation();
     event.dataTransfer.dropEffect = "copy";
     setIsDragOver(true);
-    console.log("Drag over canvas");
   }, []);
 
   const onDragLeave = useCallback((event: React.DragEvent) => {
     setIsDragOver(false);
-    console.log("Drag left canvas");
   }, []);
 
-  // Handle delete key for removing selected items
+  // Handle delete key
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Delete" || event.key === "Backspace") {
         if (selectedNodeId) {
-          // Remove selected node and its connected edges
           setNodes((nds) => nds.filter((node) => node.id !== selectedNodeId));
           setEdges((eds) =>
             eds.filter(
@@ -337,7 +496,6 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
           setSelectedNodeId(null);
         }
       } else if (event.key === "Escape" && connectionMode) {
-        // Cancel connection mode with Escape key
         resetConnectionMode();
       }
     };
@@ -346,49 +504,84 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedNodeId, setNodes, setEdges, connectionMode, resetConnectionMode]);
 
-  // Handle canvas click to deselect
   const onPaneClick = useCallback(() => {
     setSelectedNodeId(null);
   }, []);
 
-  const animatePacket = (path: string[], index: number) => {
-    if (index >= path.length - 1) {
-      setPacket(null);
-      setPacketPosition(null);
-      return;
-    }
+  // Define the animation function using useCallback with proper dependencies
+  const animatePacket = useCallback(
+    (path: string[], index: number) => {
+      // Cancel any existing animation
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
 
-    const from = reactFlowInstance.getNode(path[index]);
-    const to = reactFlowInstance.getNode(path[index + 1]);
+      if (index >= path.length - 1 || !reactFlowInstance) {
+        setPacket(null);
+        setPacketPosition(null);
+        return;
+      }
 
-    if (!from || !to) return;
+      const from = reactFlowInstance.getNode(path[index]);
+      const to = reactFlowInstance.getNode(path[index + 1]);
 
-    const start = from.position;
-    const end = to.position;
+      if (!from || !to) return;
 
-    const duration = 600;
-    const startTime = performance.now();
+      const start = from.position;
+      const end = to.position;
 
-    const animate = (time: number) => {
-      const progress = Math.min((time - startTime) / duration, 1);
+      const duration = 600;
+      const startTime = Date.now();
 
-      setPacketPosition({
-        x: start.x + (end.x - start.x) * progress,
-        y: start.y + (end.y - start.y) * progress,
-      });
+      const animate = (time: number) => {
+        const progress = Math.min((time - startTime) / duration, 1);
+        // Use easeInOut for smoother animation
+        const eased =
+          progress < 0.5
+            ? 2 * progress * progress
+            : 1 - Math.pow(-2 * progress + 2, 2) / 2;
 
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      } else {
-        setPacket({ path, index: index + 1 });
-        animatePacket(path, index + 1);
+        setPacketPosition({
+          x: start.x + (end.x - start.x) * eased,
+          y: start.y + (end.y - start.y) * eased,
+        });
+
+        if (progress < 1) {
+          animationRef.current = requestAnimationFrame(animate);
+        } else {
+          setPacket({ path, index: index + 1 });
+          // Use setTimeout to avoid stack overflow and allow state updates
+          setTimeout(() => {
+            // Use the ref to call the function recursively
+            if (animatePacketRef.current) {
+              animatePacketRef.current(path, index + 1);
+            }
+          }, 50);
+        }
+      };
+
+      animationRef.current = requestAnimationFrame(animate);
+    },
+    [reactFlowInstance],
+  );
+
+  // Set the ref to point to the animatePacket function
+  useEffect(() => {
+    animatePacketRef.current = animatePacket;
+  }, [animatePacket]);
+
+  // Cleanup animation on unmount
+  useEffect(() => {
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
       }
     };
+  }, []);
 
-    requestAnimationFrame(animate);
-  };
-
-  const sendPacket = () => {
+  const sendPacket = useCallback(() => {
     if (nodes.length < 2) return;
 
     const source = nodes[0].id;
@@ -407,7 +600,7 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
     });
 
     animatePacket(path, 0);
-  };
+  }, [nodes, edges, animatePacket]);
 
   return (
     <div
@@ -422,7 +615,7 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
       <div className="absolute top-4 right-4 z-50 flex gap-2">
         <button
           onClick={sendPacket}
-          className="px-4 py-2 bg-[#00A5E0] hover:bg-[#00A5E0]/90 rounded-lg font-semibold transition shadow-lg"
+          className="px-4 py-2 bg-[#00A5E0] hover:bg-[#00A5E0]/90 rounded-lg font-semibold transition shadow-lg text-sm"
         >
           Send Packet
         </button>
@@ -442,7 +635,7 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
               );
               setSelectedNodeId(null);
             }}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg font-semibold transition shadow-lg"
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg font-semibold transition shadow-lg text-sm"
           >
             Delete Selected
           </button>
@@ -453,8 +646,8 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
       {connectionMode && (
         <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-[#1F2937] border border-[#00A5E0] rounded-lg px-4 py-2 z-50 shadow-lg">
           <span className="text-sm">
-            🔌 Connecting with {connectionMode.toUpperCase()} cable - Click on
-            two devices
+            🔌 Connecting with {connectionMode.toUpperCase().replace("-", " ")}{" "}
+            cable - Click on two devices
           </span>
           <button
             onClick={resetConnectionMode}
