@@ -19,6 +19,61 @@ import type { Node } from "reactflow";
 import TextNode from "./TextNode";
 import { findEdgePath } from "../../utils/findEdgePath";
 import CustomNode from "./CustomNode";
+import {
+  // Core Network
+  Router,
+  GitMerge,
+  Shield,
+  Wifi,
+  Network,
+  Cable,
+  RefreshCw,
+  Globe,
+  Scale,
+  // End Devices
+  Monitor,
+  Server,
+  Printer,
+  Phone,
+  Tablet,
+  Smartphone,
+  Laptop,
+  // Wireless
+  Wifi as WifiIcon,
+  Gamepad2,
+  // Security
+  Eye,
+  ShieldCheck,
+  Lock,
+  // Storage
+  HardDrive,
+  // Cloud
+  Cloud,
+  // Additional
+  Box,
+  Radio,
+  Signal,
+  Database,
+  Zap,
+  Activity,
+  Gauge,
+  Cpu,
+  GlobeLock,
+  KeyRound,
+  Fingerprint,
+  Scroll,
+  Clock,
+  Search,
+  Volume2,
+  Watch,
+  SwitchCamera,
+  LockKeyhole,
+  Scan,
+  Radar,
+  Hexagon,
+  ShieldAlert,
+} from "lucide-react";
+import { LucideIcon } from "lucide-react";
 
 // ===== COMPREHENSIVE DEVICE TYPES =====
 export type DeviceType =
@@ -130,42 +185,42 @@ const getCableStyle = (type: CableType) => {
 };
 
 // ===== DEVICE ICONS AND LABELS =====
-const getDeviceIcon = (type: DeviceType): string => {
-  const icons: Record<DeviceType, string> = {
+const getDeviceIcon = (type: DeviceType): LucideIcon => {
+  const icons: Record<DeviceType, LucideIcon> = {
     // Core Network
-    router: "📡",
-    switch: "🔀",
-    firewall: "🛡️",
-    modem: "📶",
-    hub: "🔁",
-    bridge: "🌉",
-    repeater: "📤",
-    gateway: "🚪",
-    "multilayer-switch": "🔀",
-    "load-balancer": "⚖️",
+    router: Router,
+    switch: GitMerge,
+    firewall: Shield,
+    modem: Signal,
+    hub: Network,
+    bridge: Cable,
+    repeater: RefreshCw,
+    gateway: Globe,
+    "multilayer-switch": GitMerge,
+    "load-balancer": Scale,
     // End Devices
-    pc: "💻",
-    server: "🖥️",
-    laptop: "💻",
-    printer: "🖨️",
-    "ip-phone": "📞",
-    tablet: "📱",
-    smartphone: "📱",
+    pc: Monitor,
+    server: Server,
+    laptop: Laptop,
+    printer: Printer,
+    "ip-phone": Phone,
+    tablet: Tablet,
+    smartphone: Smartphone,
     // Wireless
-    "wireless-ap": "📶",
-    "access-point": "📶",
-    controller: "🎮",
+    "wireless-ap": WifiIcon,
+    "access-point": WifiIcon,
+    controller: Gamepad2,
     // Security
-    ids: "🔍",
-    ips: "🛡️",
-    "vpn-concentrator": "🔐",
+    ids: Eye,
+    ips: ShieldCheck,
+    "vpn-concentrator": Lock,
     // Storage
-    nas: "💾",
-    "san-switch": "💾",
+    nas: HardDrive,
+    "san-switch": Database,
     // Cloud
-    cloud: "☁️",
+    cloud: Cloud,
   };
-  return icons[type] || "📦";
+  return icons[type] || Box;
 };
 
 const getDeviceLabel = (type: DeviceType): string => {
@@ -436,6 +491,7 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
           setNodes((nds) => [...nds, newNode]);
         } else {
           const typedDeviceType = deviceType as DeviceType;
+          const IconComponent = getDeviceIcon(typedDeviceType);
           const newNode: Node<NetworkNodeData> = {
             id: crypto.randomUUID(),
             type: "custom",
@@ -443,7 +499,7 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
             data: {
               type: typedDeviceType,
               label: getDeviceLabel(typedDeviceType),
-              icon: getDeviceIcon(typedDeviceType),
+              icon: IconComponent,
             },
             style: {
               background: "#1F2937",
