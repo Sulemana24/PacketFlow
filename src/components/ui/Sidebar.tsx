@@ -66,6 +66,20 @@ import {
   MonitorSmartphone,
   Server as ServerIcon,
   Cloud as CloudIcon,
+  // Category icons
+  Laptop as EndDeviceIcon,
+  Network as InfrastructureIcon,
+  Wifi as WirelessIcon,
+  Shield as SecurityIcon,
+  ServerIcon as ServersIcon,
+  HardDriveIcon as StorageIcon,
+  CloudIcon as CloudServiceIcon,
+  Settings as ServicesIcon,
+  Gauge as SpecializedIcon,
+  Box as IoTIcon,
+  Activity as MonitoringIcon,
+  Plug as ToolsIcon,
+  EthernetPort as WiredIcon,
 } from "lucide-react";
 import { useState } from "react";
 import { LucideIcon } from "lucide-react";
@@ -231,6 +245,23 @@ interface Cable {
 
 // Helper type for category items
 type CategoryItem = Device | Cable;
+
+// Category icon mapping with Lucide icons
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
+  "End Devices": EndDeviceIcon,
+  Infrastructure: InfrastructureIcon,
+  Wireless: WirelessIcon,
+  Security: SecurityIcon,
+  Servers: ServersIcon,
+  Storage: StorageIcon,
+  Cloud: CloudServiceIcon,
+  Services: ServicesIcon,
+  Specialized: SpecializedIcon,
+  "IoT & Smart": IoTIcon,
+  Monitoring: MonitoringIcon,
+  Tools: ToolsIcon,
+  Wired: WiredIcon,
+};
 
 const devices: Device[] = [
   // ===== End Devices =====
@@ -962,25 +993,9 @@ export default function Sidebar() {
   const currentGrouped =
     activeTab === "devices" ? groupedDevices : groupedCables;
 
-  // Get category icon
-  const getCategoryIcon = (category: string): string => {
-    // Map category to emoji
-    const categoryEmojis: Record<string, string> = {
-      "End Devices": "💻",
-      Infrastructure: "🏗️",
-      Wireless: "📶",
-      Security: "🛡️",
-      Servers: "🖥️",
-      Storage: "💾",
-      Cloud: "☁️",
-      Services: "⚙️",
-      Specialized: "🔧",
-      "IoT & Smart": "📡",
-      Monitoring: "📊",
-      Tools: "🔨",
-      Wired: "🔌",
-    };
-    return categoryEmojis[category] || "📦";
+  // Get category icon - now returns LucideIcon component
+  const getCategoryIcon = (category: string): LucideIcon => {
+    return CATEGORY_ICONS[category] || Box;
   };
 
   return (
@@ -1034,77 +1049,82 @@ export default function Sidebar() {
           </div>
         ) : (
           <div className="space-y-4">
-            {Object.entries(currentGrouped).map(([category, categoryItems]) => (
-              <div key={category}>
-                <button
-                  onClick={() => toggleCategory(category)}
-                  className="w-full flex items-center justify-between text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 hover:text-gray-300 transition group"
-                >
-                  <span className="flex items-center gap-2">
-                    <span>{getCategoryIcon(category)}</span>
-                    <span>
-                      {category} ({categoryItems.length})
+            {Object.entries(currentGrouped).map(([category, categoryItems]) => {
+              const CategoryIcon = getCategoryIcon(category);
+              return (
+                <div key={category}>
+                  <button
+                    onClick={() => toggleCategory(category)}
+                    className="w-full flex items-center justify-between text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 hover:text-gray-300 transition group"
+                  >
+                    <span className="flex items-center gap-2">
+                      <CategoryIcon size={14} className="text-[#00A5E0]" />
+                      <span>
+                        {category} ({categoryItems.length})
+                      </span>
                     </span>
-                  </span>
-                  {collapsedCategories[category] ? (
-                    <ChevronDown
-                      size={14}
-                      className="group-hover:scale-110 transition"
-                    />
-                  ) : (
-                    <ChevronUp
-                      size={14}
-                      className="group-hover:scale-110 transition"
-                    />
-                  )}
-                </button>
+                    {collapsedCategories[category] ? (
+                      <ChevronDown
+                        size={14}
+                        className="group-hover:scale-110 transition"
+                      />
+                    ) : (
+                      <ChevronUp
+                        size={14}
+                        className="group-hover:scale-110 transition"
+                      />
+                    )}
+                  </button>
 
-                {!collapsedCategories[category] && (
-                  <div className="grid grid-cols-2 gap-2">
-                    {categoryItems.map((item: CategoryItem) => {
-                      const Icon = item.icon;
+                  {!collapsedCategories[category] && (
+                    <div className="grid grid-cols-2 gap-2">
+                      {categoryItems.map((item: CategoryItem) => {
+                        const Icon = item.icon;
 
-                      return (
-                        <div
-                          key={`${item.type}-${item.label}`}
-                          draggable
-                          onDragStart={(e) =>
-                            onDragStart(
-                              e,
-                              item.type,
-                              activeTab === "devices" ? "device" : "cable",
-                            )
-                          }
-                          className="flex items-center gap-2 p-2 bg-[#1F2937] rounded cursor-grab hover:bg-[#374151] transition-all hover:scale-105 active:cursor-grabbing group relative"
-                        >
-                          <Icon
-                            size={16}
-                            className={`flex-shrink-0 ${
-                              activeTab === "cables"
-                                ? "text-green-500"
-                                : "text-[#00A5E0]"
-                            }`}
-                          />
-                          <div className="flex-1 min-w-0">
-                            <span className="text-sm truncate block">
-                              {item.label}
-                            </span>
-                            {"speed" in item && item.speed && (
-                              <span className="text-[10px] text-gray-500">
-                                {item.speed}
+                        return (
+                          <div
+                            key={`${item.type}-${item.label}`}
+                            draggable
+                            onDragStart={(e) =>
+                              onDragStart(
+                                e,
+                                item.type,
+                                activeTab === "devices" ? "device" : "cable",
+                              )
+                            }
+                            className="flex items-center gap-2 p-2 bg-[#1F2937] rounded cursor-grab hover:bg-[#374151] transition-all hover:scale-105 active:cursor-grabbing group relative"
+                          >
+                            <Icon
+                              size={16}
+                              className={`flex-shrink-0 ${
+                                activeTab === "cables"
+                                  ? "text-green-500"
+                                  : "text-[#00A5E0]"
+                              }`}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <span className="text-sm truncate block">
+                                {item.label}
                               </span>
-                            )}
+                              {"speed" in item && item.speed && (
+                                <span className="text-[10px] text-gray-500">
+                                  {item.speed}
+                                </span>
+                              )}
+                            </div>
+                            <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition">
+                              <span className="text-[8px] text-gray-600">
+                                ↕
+                              </span>
+                            </div>
                           </div>
-                          <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition">
-                            <span className="text-[8px] text-gray-600">↕</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            ))}
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
