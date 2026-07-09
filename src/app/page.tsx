@@ -1,48 +1,15 @@
 "use client";
+
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { useState, useMemo, useEffect } from "react";
-import {
-  LogIn,
-  UserPlus,
-  Mail,
-  Lock,
-  User,
-  XCircle,
-  Network,
-  Radio,
-  Layers,
-  ArrowRight,
-  Eye,
-  EyeOff,
-} from "lucide-react";
+import { motion } from "framer-motion";
+import { useMemo, useState } from "react";
+import { LogIn, Network, Radio, Layers, ArrowRight } from "lucide-react";
+import AuthModal from "@/components/AuthModal";
 
 export default function Home() {
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [error, setError] = useState("");
   const router = useRouter();
-
-  // Generate stable positions for planets
-  const planets = useMemo(
-    () => [
-      { radius: 120, speed: 8, color: "#FF6B6B", size: 12, name: "Mercury" },
-      { radius: 180, speed: 12, color: "#FFD93D", size: 14, name: "Venus" },
-      { radius: 250, speed: 16, color: "#6BCF7F", size: 16, name: "Earth" },
-      { radius: 320, speed: 20, color: "#FF8C42", size: 14, name: "Mars" },
-      { radius: 400, speed: 24, color: "#FFD700", size: 20, name: "Jupiter" },
-      { radius: 480, speed: 28, color: "#E8B4B8", size: 18, name: "Saturn" },
-      { radius: 550, speed: 35, color: "#4A90E2", size: 12, name: "Uranus" },
-      { radius: 620, speed: 40, color: "#9B59B6", size: 10, name: "Neptune" },
-    ],
-    [],
-  );
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
 
   // Generate stable stars
   const stars = useMemo(() => {
@@ -68,86 +35,9 @@ export default function Home() {
     }));
   }, []);
 
-  // Close modal on escape key
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isAuthModalOpen) {
-        setIsAuthModalOpen(false);
-      }
-    };
-    document.addEventListener("keydown", handleEsc);
-    return () => document.removeEventListener("keydown", handleEsc);
-  }, [isAuthModalOpen]);
-
-  // Prevent body scroll when modal is open
-  useEffect(() => {
-    if (isAuthModalOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [isAuthModalOpen]);
-
-  const validateForm = () => {
-    setError("");
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setError("Please enter a valid email address");
-      return false;
-    }
-
-    // Password validation
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters long");
-      return false;
-    }
-
-    // Confirm password for signup
-    if (!isLogin && password !== confirmPassword) {
-      setError("Passwords do not match");
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleAuth = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
-    // Simulate authentication
-    const userData = {
-      email,
-      name: isLogin ? "User" : name,
-    };
-
-    // Store in localStorage (fake session)
-    localStorage.setItem("packetflow_user", JSON.stringify(userData));
-
-    console.log(isLogin ? "Login:" : "Signup:", userData);
-
-    // Close modal
-    setIsAuthModalOpen(false);
-
-    // Reset form
-    setEmail("");
-    setPassword("");
-    setConfirmPassword("");
-    setName("");
-    setError("");
-    setShowPassword(false);
-    setShowConfirmPassword(false);
-
-    // Redirect to dashboard
-    router.push("/dashboard");
+  const handleAuthClick = (mode: "signin" | "signup") => {
+    setAuthMode(mode);
+    setAuthModalOpen(true);
   };
 
   return (
@@ -180,53 +70,6 @@ export default function Home() {
               ease: "easeInOut",
             }}
           />
-        ))}
-
-        {/* Planets with Orbits */}
-        {planets.map((planet, idx) => (
-          <motion.div
-            key={idx}
-            className="absolute"
-            style={{
-              left: "50%",
-              top: "50%",
-              width: planet.radius * 2,
-              height: planet.radius * 2,
-              marginLeft: -planet.radius,
-              marginTop: -planet.radius,
-            }}
-            animate={{
-              rotate: 360,
-            }}
-            transition={{
-              duration: planet.speed,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-          >
-            <motion.div
-              className="absolute rounded-full"
-              style={{
-                width: planet.size,
-                height: planet.size,
-                background: `radial-gradient(circle at 30% 30%, ${planet.color}, ${planet.color}dd)`,
-                left: planet.radius,
-                top: 0,
-                marginLeft: -planet.size / 2,
-                marginTop: -planet.size / 2,
-                boxShadow: `0 0 20px ${planet.color}80`,
-              }}
-              animate={{
-                scale: [1, 1.1, 1],
-                opacity: [0.8, 1, 0.8],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-          </motion.div>
         ))}
 
         {/* Shooting Stars */}
@@ -274,230 +117,21 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-[#0B0F19]" />
       </div>
 
-      {/* Login/Signup Modal */}
-      <AnimatePresence>
-        {isAuthModalOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
-            onClick={() => setIsAuthModalOpen(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#111827] rounded-2xl shadow-2xl w-full max-w-md border border-[#00A5E0]/30"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Header */}
-              <div className="flex justify-between items-center p-6 border-b border-[#1F2937]">
-                <div className="flex gap-4">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsLogin(true);
-                      setError("");
-                    }}
-                    className={`px-4 py-2 rounded-lg font-semibold transition cursor-pointer ${
-                      isLogin
-                        ? "bg-[#00A5E0] text-white"
-                        : "text-gray-400 hover:text-white"
-                    }`}
-                  >
-                    Login
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsLogin(false);
-                      setError("");
-                    }}
-                    className={`px-4 py-2 rounded-lg font-semibold transition cursor-pointer ${
-                      !isLogin
-                        ? "bg-[#00A5E0] text-white"
-                        : "text-gray-400 hover:text-white"
-                    }`}
-                  >
-                    Sign Up
-                  </button>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsAuthModalOpen(false)}
-                  className="text-gray-400 hover:text-white transition cursor-pointer"
-                >
-                  <XCircle size={24} />
-                </button>
-              </div>
-
-              {/* Error Message */}
-              <AnimatePresence>
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="mx-6 mt-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg"
-                  >
-                    <p className="text-red-400 text-sm text-center">{error}</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* Form */}
-              <form onSubmit={handleAuth} className="p-6 space-y-4">
-                {!isLogin && (
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-300 block">
-                      Full Name
-                    </label>
-                    <div className="relative">
-                      <User
-                        size={18}
-                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                      />
-                      <input
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-[#1F2937] border border-[#374151] rounded-lg focus:outline-none focus:border-[#00A5E0] text-white"
-                        placeholder="Enter your Fullname"
-                        required={!isLogin}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-300 block">
-                    Email Address
-                  </label>
-                  <div className="relative">
-                    <Mail
-                      size={18}
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                    />
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 bg-[#1F2937] border border-[#374151] rounded-lg focus:outline-none focus:border-[#00A5E0] text-white"
-                      placeholder="you@example.com"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-300 block">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <Lock
-                      size={18}
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                    />
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-10 pr-12 py-2 bg-[#1F2937] border border-[#374151] rounded-lg focus:outline-none focus:border-[#00A5E0] text-white"
-                      placeholder="••••••••"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300 transition cursor-pointer"
-                    >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                </div>
-
-                {!isLogin && (
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-300 block">
-                      Confirm Password
-                    </label>
-                    <div className="relative">
-                      <Lock
-                        size={18}
-                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                      />
-                      <input
-                        type={showConfirmPassword ? "text" : "password"}
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="w-full pl-10 pr-12 py-2 bg-[#1F2937] border border-[#374151] rounded-lg focus:outline-none focus:border-[#00A5E0] text-white"
-                        placeholder="••••••••"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setShowConfirmPassword(!showConfirmPassword)
-                        }
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300 transition cursor-pointer"
-                      >
-                        {showConfirmPassword ? (
-                          <EyeOff size={18} />
-                        ) : (
-                          <Eye size={18} />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {isLogin && (
-                  <div className="text-right">
-                    <button
-                      type="button"
-                      className="text-xs text-[#00A5E0] hover:underline"
-                    >
-                      Forgot password?
-                    </button>
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  className="w-full py-2 bg-[#00A5E0] hover:bg-[#00A5E0]/90 rounded-lg font-semibold transition flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  {isLogin ? (
-                    <>
-                      <LogIn size={18} />
-                      Login
-                    </>
-                  ) : (
-                    <>
-                      <UserPlus size={18} />
-                      Sign Up
-                    </>
-                  )}
-                </button>
-
-                <div className="text-center text-xs text-gray-500">
-                  By continuing, you agree to our Terms of Service and Privacy
-                  Policy
-                </div>
-              </form>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Login Button */}
+      {/* Auth Button */}
       <button
-        onClick={() => setIsAuthModalOpen(true)}
+        onClick={() => handleAuthClick("signin")}
         className="fixed top-4 right-4 z-50 bg-[#00A5E0] hover:bg-[#00A5E0]/90 px-4 py-2 rounded-lg font-semibold transition shadow-lg flex items-center gap-2 cursor-pointer"
       >
         <LogIn size={18} />
         Login / Sign Up
       </button>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        initialMode={authMode}
+      />
 
       {/* Cisco-style Accent Line */}
       <div className="relative z-10 top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#00A5E0] via-[#49B5E8] to-[#00A5E0]" />
@@ -540,7 +174,7 @@ export default function Home() {
 
         <div className="mt-10 flex gap-4 flex-wrap justify-center">
           <button
-            onClick={() => setIsAuthModalOpen(true)}
+            onClick={() => handleAuthClick("signin")}
             className="group px-8 py-4 bg-[#00A5E0] hover:bg-[#00A5E0]/90 rounded-lg font-semibold transition-all hover:scale-105 inline-flex items-center gap-2 shadow-lg shadow-blue-600/20 cursor-pointer"
           >
             Launch Simulator
@@ -710,7 +344,7 @@ export default function Home() {
           </p>
           <div className="mt-10 flex gap-4 justify-center flex-wrap">
             <button
-              onClick={() => setIsAuthModalOpen(true)}
+              onClick={() => handleAuthClick("signin")}
               className="group px-8 py-4 bg-[#00A5E0] hover:bg-[#00A5E0]/90 rounded-lg font-semibold transition-all hover:scale-105 inline-flex items-center gap-2 shadow-lg shadow-blue-600/20 cursor-pointer"
             >
               Start Building
@@ -769,11 +403,6 @@ export default function Home() {
                     About
                   </a>
                 </li>
-                <li>
-                  <a href="#" className="hover:text-[#00A5E0] transition">
-                    Blog
-                  </a>
-                </li>
               </ul>
             </div>
             <div>
@@ -812,15 +441,6 @@ export default function Home() {
             transparent 0%,
             #0b0f19 100%
           );
-        }
-        @keyframes twinkle {
-          0%,
-          100% {
-            opacity: 0.5;
-          }
-          50% {
-            opacity: 1;
-          }
         }
       `}</style>
     </div>

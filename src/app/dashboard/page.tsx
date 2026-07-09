@@ -1,4 +1,5 @@
 "use client";
+
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
@@ -19,24 +20,15 @@ import {
   Play,
   AlertCircle,
   CheckCircle,
-  Cpu,
   Wifi,
   Server,
   Activity,
-  MapPin,
-  Gauge,
-  Network,
-  Clock,
-  HardDrive,
 } from "lucide-react";
 import Sidebar from "@/components/ui/Sidebar";
 import NetworkCanvas from "@/components/canvas/NetworkCanvas";
 import { ReactFlowProvider } from "reactflow";
-
-interface UserData {
-  email: string;
-  name: string;
-}
+import { useAuth } from "../context/AuthContext";
+import { User as FirebaseUser } from "firebase/auth";
 
 interface ConsoleMessage {
   id: number;
@@ -69,7 +61,6 @@ interface NetworkStats {
 export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [user, setUser] = useState<UserData | null>(null);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isConsoleOpen, setIsConsoleOpen] = useState(true);
   const [consoleInput, setConsoleInput] = useState("");
@@ -106,18 +97,25 @@ export default function Dashboard() {
   const consoleResizeRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
+  // Use Firebase auth
+  const { user, loading, signOut } = useAuth();
+
+  // Redirect to home if not authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/");
+    }
+  }, [user, loading, router]);
+
   // Get local network info
   const getLocalNetworkInfo = async () => {
     try {
-      // Get local IP using WebRTC
       const ip = await getLocalIP();
       setNetworkStats((prev) => ({ ...prev, ipAddress: ip }));
 
-      // Get MAC address (simulated - browsers don't expose real MAC)
       const mac = generateMockMAC();
       setNetworkStats((prev) => ({ ...prev, macAddress: mac }));
 
-      // Get connection type
       type NetworkInformation = {
         effectiveType?: string;
         downlink?: number;
@@ -186,7 +184,6 @@ export default function Dashboard() {
       const data = await response.json();
       const publicIP = data.ip;
 
-      // Get IP geolocation (using free API)
       const geoResponse = await fetch(`https://ipapi.co/${publicIP}/json/`);
       const geoData = await geoResponse.json();
 
@@ -222,7 +219,6 @@ export default function Dashboard() {
     ]);
 
     try {
-      // Measure download speed
       const downloadSpeed = await measureDownloadSpeed();
       const uploadSpeed = await measureUploadSpeed();
       const ping = await measurePing();
@@ -262,7 +258,7 @@ export default function Dashboard() {
   // Measure download speed
   const measureDownloadSpeed = (): Promise<number> => {
     return new Promise(async (resolve) => {
-      const fileUrl = "https://speed.cloudflare.com/__down?bytes=5000000"; // 5MB file
+      const fileUrl = "https://speed.cloudflare.com/__down?bytes=5000000";
       const startTime = Date.now();
 
       try {
@@ -282,7 +278,7 @@ export default function Dashboard() {
   // Measure upload speed
   const measureUploadSpeed = (): Promise<number> => {
     return new Promise(async (resolve) => {
-      const testData = new ArrayBuffer(1000000); // 1MB
+      const testData = new ArrayBuffer(1000000);
       const startTime = Date.now();
 
       try {
@@ -317,7 +313,6 @@ export default function Dashboard() {
 
   // Get DNS servers
   const getDNSServers = async () => {
-    // Browser doesn't expose DNS, so we'll simulate with common DNS
     const dnsList = [
       "8.8.8.8 (Google)",
       "8.8.4.4 (Google)",
@@ -387,13 +382,11 @@ export default function Dashboard() {
         },
       ]);
 
-      // Initialize network monitoring
       getLocalNetworkInfo();
       getPublicIPInfo();
       getDNSServers();
       monitorNetworkStatus();
 
-      // Periodic network check
       const interval = setInterval(() => {
         if (navigator.onLine !== networkStats.isOnline) {
           setNetworkStats((prev) => ({ ...prev, isOnline: navigator.onLine }));
@@ -403,16 +396,6 @@ export default function Dashboard() {
       return () => clearInterval(interval);
     }
   }, [isMounted]);
-
-  // Get user data from localStorage
-  useEffect(() => {
-    const userData = localStorage.getItem("packetflow_user");
-    if (!userData) {
-      router.push("/");
-    } else {
-      setUser(JSON.parse(userData));
-    }
-  }, [router]);
 
   // Auto-scroll console to bottom
   useEffect(() => {
@@ -450,9 +433,13 @@ export default function Dashboard() {
   }, [isConsoleOpen, isConsoleMinimized]);
 
   // Handle logout
-  const handleLogout = () => {
-    localStorage.removeItem("packetflow_user");
-    router.push("/");
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      router.push("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   // Close profile menu when clicking outside
@@ -779,22 +766,37 @@ export default function Dashboard() {
     return () => document.removeEventListener("keydown", handleKeyPress);
   }, [isSidebarOpen, handleZoomToFit, isProfileMenuOpen]);
 
-  // Get user initials for avatar
-  const getUserInitials = () => {
-    if (!user) return "U";
-    if (user.name && user.name !== "User") {
-      return user.name.charAt(0).toUpperCase();
-    }
-    return user.email.charAt(0).toUpperCase();
+  // Get user display name
+  const getUserDisplayName = (user: FirebaseUser | null) => {
+    if (!user) return "Guest";
+    if (user.displayName) return user.displayName;
+    if (user.email) return user.email.split("@")[0];
+    if (user.isAnonymous) return "Guest User";
+    return "User";
   };
 
-  // Don't render until mounted to avoid hydration issues
-  if (!isMounted) {
+  // Get user initials for avatar
+  const getUserInitials = (user: FirebaseUser | null) => {
+    if (!user) return "G";
+    const name = getUserDisplayName(user);
+    return name.charAt(0).toUpperCase();
+  };
+
+  // Show loading state
+  if (loading || !isMounted) {
     return (
       <div className="flex h-screen w-full bg-[#0B0F19] items-center justify-center">
-        <div className="text-white">Loading...</div>
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-[#00A5E0] border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-gray-400 mt-4">Loading Dashboard...</p>
+        </div>
       </div>
     );
+  }
+
+  // Don't render if not authenticated
+  if (!user) {
+    return null;
   }
 
   return (
@@ -834,7 +836,8 @@ export default function Dashboard() {
         {/* Top Bar */}
         <div className="sticky top-0 z-30 bg-[#0B0F19]/95 backdrop-blur-sm border-b border-[#1F2937] px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div></div>
+            <div className="hidden lg:flex items-center gap-3">
               <div className="w-8 h-8 bg-gradient-to-br from-[#00A5E0] to-[#0085C0] rounded-lg flex items-center justify-center">
                 <Layout size={18} className="text-white" />
               </div>
@@ -877,82 +880,88 @@ export default function Dashboard() {
               </button>
             </div>
 
-            {user && (
-              <div className="relative" ref={profileMenuRef}>
-                <button
-                  onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                  className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#1F2937] transition-all group"
-                >
-                  <div className="relative">
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#00A5E0] to-[#0085C0] flex items-center justify-center shadow-lg">
-                      <span className="text-white font-semibold text-sm">
-                        {getUserInitials()}
-                      </span>
-                    </div>
-                    <div
-                      className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0B0F19] ${networkStats.isOnline ? "bg-green-500 animate-pulse" : "bg-red-500"}`}
-                    />
+            {/* User Profile */}
+            <div className="relative" ref={profileMenuRef}>
+              <button
+                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#1F2937] transition-all group"
+              >
+                <div className="relative">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#00A5E0] to-[#0085C0] flex items-center justify-center shadow-lg">
+                    <span className="text-white font-semibold text-sm">
+                      {getUserInitials(user)}
+                    </span>
                   </div>
-
-                  <div className="hidden md:block text-left">
-                    <p className="text-sm font-medium text-white">
-                      {user.name && user.name !== "User"
-                        ? user.name
-                        : user.email.split("@")[0]}
-                    </p>
-                    <p className="text-xs text-gray-400">{user.email}</p>
-                  </div>
-
-                  <ChevronDown
-                    size={16}
-                    className={`text-gray-400 transition-transform duration-200 hidden md:block ${
-                      isProfileMenuOpen ? "rotate-180" : ""
-                    }`}
+                  <div
+                    className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0B0F19] ${networkStats.isOnline ? "bg-green-500 animate-pulse" : "bg-red-500"}`}
                   />
-                </button>
+                </div>
 
-                {isProfileMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-64 bg-[#1F2937] rounded-lg shadow-xl border border-[#374151] overflow-hidden z-50">
-                    <div className="px-4 py-3 border-b border-[#374151]">
-                      <p className="text-sm font-medium text-white">
-                        {user.name && user.name !== "User"
-                          ? user.name
-                          : "Guest User"}
+                <div className="hidden md:block text-left">
+                  <p className="text-sm font-medium text-white">
+                    {getUserDisplayName(user)}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {user.email ||
+                      (user.isAnonymous ? "Guest Account" : "No email")}
+                  </p>
+                </div>
+
+                <ChevronDown
+                  size={16}
+                  className={`text-gray-400 transition-transform duration-200 hidden md:block ${
+                    isProfileMenuOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {isProfileMenuOpen && (
+                <div className="absolute right-0 mt-2 w-64 bg-[#1F2937] rounded-lg shadow-xl border border-[#374151] overflow-hidden z-50">
+                  <div className="px-4 py-3 border-b border-[#374151]">
+                    <p className="text-sm font-medium text-white">
+                      {getUserDisplayName(user)}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {user.email ||
+                        (user.isAnonymous ? "Guest Account" : "No email")}
+                    </p>
+                    {user.isAnonymous && (
+                      <p className="text-xs text-[#00A5E0] mt-1">
+                        ℹ️ Guest account - temporary
                       </p>
-                      <p className="text-xs text-gray-400 mt-1">{user.email}</p>
-                    </div>
-
-                    <div className="py-2">
-                      <button
-                        onClick={() => setIsProfileMenuOpen(false)}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-[#374151] transition-colors"
-                      >
-                        <User size={16} className="text-[#00A5E0]" />
-                        <span>Profile Settings</span>
-                      </button>
-
-                      <button
-                        onClick={() => setIsProfileMenuOpen(false)}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-[#374151] transition-colors"
-                      >
-                        <Settings size={16} className="text-[#00A5E0]" />
-                        <span>Preferences</span>
-                      </button>
-
-                      <div className="border-t border-[#374151] my-1"></div>
-
-                      <button
-                        onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-[#374151] transition-colors"
-                      >
-                        <LogOut size={16} />
-                        <span>Logout</span>
-                      </button>
-                    </div>
+                    )}
                   </div>
-                )}
-              </div>
-            )}
+
+                  <div className="py-2">
+                    <button
+                      onClick={() => setIsProfileMenuOpen(false)}
+                      className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-[#374151] transition-colors"
+                    >
+                      <User size={16} className="text-[#00A5E0]" />
+                      <span>Profile Settings</span>
+                    </button>
+
+                    <button
+                      onClick={() => setIsProfileMenuOpen(false)}
+                      className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-[#374151] transition-colors"
+                    >
+                      <Settings size={16} className="text-[#00A5E0]" />
+                      <span>Preferences</span>
+                    </button>
+
+                    <div className="border-t border-[#374151] my-1"></div>
+
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-[#374151] transition-colors"
+                    >
+                      <LogOut size={16} />
+                      <span>Logout</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -1136,15 +1145,6 @@ export default function Dashboard() {
             </div>
           </div>
         )}
-
-        {/* Desktop Status Bar */}
-        {/*  {!isMobile && (
-          <div className="absolute bottom-4 left-4 z-40 bg-black/50 backdrop-blur-sm px-3 py-1 rounded-lg text-xs text-gray-400">
-            <span>
-              💡 Tip: Press &apos;B&apos; to toggle sidebar | &apos;F&apos; to fit view | Ctrl+Shift+C to toggle console | Ctrl+K to focus console
-            </span>
-          </div>
-        )} */}
       </div>
     </div>
   );
