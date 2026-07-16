@@ -148,15 +148,15 @@ export default function ContactPage() {
       icon: MapPin,
       title: "Location",
       description: "Visit our office",
-      contact: "San Francisco, CA",
+      contact: "Tanoso, USTED-K",
       href: "#",
     },
     {
       icon: Phone,
       title: "Phone",
       description: "Call us during business hours",
-      contact: "+1 (555) 123-4567",
-      href: "tel:+15551234567",
+      contact: "+233 (555) 123-4567",
+      href: "tel:+2335551234567",
     },
   ];
 
@@ -273,7 +273,7 @@ export default function ContactPage() {
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
-                      placeholder="John Doe"
+                      placeholder="Enter your fullname"
                       className="w-full pl-10 pr-4 py-2 bg-[#1F2937] border border-[#374151] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00A5E0] transition"
                       required
                     />
@@ -294,7 +294,7 @@ export default function ContactPage() {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      placeholder="john@example.com"
+                      placeholder="email@example.com"
                       className="w-full pl-10 pr-4 py-2 bg-[#1F2937] border border-[#374151] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00A5E0] transition"
                       required
                     />
