@@ -167,7 +167,9 @@ export type DeviceType =
   | "network-scanner"
   | "vulnerability-scanner"
   // Internet
-  | "internet";
+  | "internet"
+  | "database"
+  | "text";
 
 // ===== COMPREHENSIVE CABLE TYPES =====
 export type CableType =
@@ -201,7 +203,7 @@ export type CableType =
 // ===== DEVICE METADATA =====
 export interface DeviceMetadata {
   label: string;
-  icon: LucideIcon; // Changed from string to LucideIcon
+  icon: LucideIcon;
   category:
     | "core"
     | "end-device"
@@ -241,7 +243,7 @@ export type NetworkNodeData = {
     | "running"
     | "stopped"
     | "degraded";
-  icon?: LucideIcon | null; // Changed from string to LucideIcon
+  icon?: LucideIcon | null;
   metadata?: DeviceMetadata;
 };
 
@@ -800,6 +802,18 @@ export const DEVICE_METADATA: Record<DeviceType, DeviceMetadata> = {
     icon: Globe,
     category: "core",
     color: "#3B82F6",
+  },
+  database: {
+    label: "Database",
+    icon: Database,
+    category: "service",
+    color: "#06B6D4",
+  },
+  text: {
+    label: "Text",
+    icon: Monitor,
+    category: "service",
+    color: "#06B6D4",
   },
 };
 
