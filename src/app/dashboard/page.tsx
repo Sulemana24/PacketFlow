@@ -105,6 +105,16 @@ export default function Dashboard() {
     setIsSidebarOpen(false);
   }, []);
 
+  // Handle item added from sidebar (close sidebar on mobile)
+  const handleSidebarItemAdded = useCallback(() => {
+    if (isMobile) {
+      // Small delay to allow the toast notification to appear
+      setTimeout(() => {
+        setIsSidebarOpen(false);
+      }, 300);
+    }
+  }, [isMobile]);
+
   // Redirect if not authenticated
   useEffect(() => {
     if (!loading && !user) {
@@ -252,7 +262,7 @@ export default function Dashboard() {
     }
   };
 
-  // FIX: Speed test for UI - returns void
+  // Speed test for UI - returns void
   const handleSpeedTest = useCallback(async () => {
     try {
       await measureInternetSpeed();
@@ -264,7 +274,7 @@ export default function Dashboard() {
     }
   }, [measureInternetSpeed]);
 
-  // FIX: Speed test for console - returns results
+  // Speed test for console - returns results
   const handleSpeedTestForConsole = useCallback(async () => {
     try {
       const results = await measureInternetSpeed();
@@ -329,7 +339,7 @@ export default function Dashboard() {
           onClose={closeSidebar}
         />
 
-        {/* Sidebar */}
+        {/* Sidebar - Pass isMobile and onItemAdded */}
         <div
           id="sidebar"
           ref={sidebarRef}
@@ -345,7 +355,7 @@ export default function Dashboard() {
             md:translate-x-0
           `}
         >
-          <Sidebar />
+          <Sidebar isMobile={isMobile} onItemAdded={handleSidebarItemAdded} />
         </div>
 
         {/* Main Content */}
@@ -357,15 +367,15 @@ export default function Dashboard() {
             isConsoleOpen={isConsoleOpen}
             onConsoleToggle={() => setIsConsoleOpen(!isConsoleOpen)}
             onRefreshStats={refreshStats}
-            onSpeedTest={handleSpeedTest} // ✅ Now returns void
+            onSpeedTest={handleSpeedTest}
             isMeasuringSpeed={isMeasuringSpeed}
             onLogout={handleLogout}
           />
 
-          {/* Canvas */}
+          {/* Canvas - Pass isMobile prop */}
           <div ref={canvasRef} className="flex-1 min-h-0 relative">
             <ReactFlowProvider>
-              <NetworkCanvas />
+              <NetworkCanvas isMobile={isMobile} />
             </ReactFlowProvider>
           </div>
 

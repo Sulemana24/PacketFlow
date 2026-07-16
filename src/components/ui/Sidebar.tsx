@@ -83,7 +83,9 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { LucideIcon } from "lucide-react";
+import toast from "react-hot-toast";
 
+// ===== TYPES =====
 type DeviceType =
   // Core Network
   | "router"
@@ -243,10 +245,9 @@ interface Cable {
   speed?: string;
 }
 
-// Helper type for category items
 type CategoryItem = Device | Cable;
 
-// Category icon mapping with Lucide icons
+// ===== CATEGORY ICONS =====
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
   "End Devices": EndDeviceIcon,
   Infrastructure: InfrastructureIcon,
@@ -263,8 +264,9 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
   Wired: WiredIcon,
 };
 
+// ===== DEVICES DATA =====
 const devices: Device[] = [
-  // ===== End Devices =====
+  // End Devices
   { type: "pc", label: "PC", icon: Monitor, category: "End Devices" },
   { type: "laptop", label: "Laptop", icon: Laptop, category: "End Devices" },
   {
@@ -295,8 +297,7 @@ const devices: Device[] = [
     category: "End Devices",
   },
   { type: "user", label: "User", icon: User, category: "End Devices" },
-
-  // ===== Network Infrastructure =====
+  // Infrastructure
   { type: "router", label: "Router", icon: Router, category: "Infrastructure" },
   {
     type: "switch",
@@ -367,8 +368,7 @@ const devices: Device[] = [
     icon: Globe,
     category: "Infrastructure",
   },
-
-  // ===== Wireless =====
+  // Wireless
   {
     type: "wireless-ap",
     label: "Wireless AP",
@@ -411,8 +411,7 @@ const devices: Device[] = [
     icon: Radar,
     category: "Wireless",
   },
-
-  // ===== Security =====
+  // Security
   { type: "firewall", label: "Firewall", icon: Shield, category: "Security" },
   { type: "ids", label: "IDS", icon: Eye, category: "Security" },
   { type: "ips", label: "IPS", icon: ShieldCheck, category: "Security" },
@@ -458,8 +457,7 @@ const devices: Device[] = [
     icon: LockKeyhole,
     category: "Security",
   },
-
-  // ===== Servers =====
+  // Servers
   { type: "server", label: "Server", icon: ServerIcon, category: "Servers" },
   {
     type: "file-server",
@@ -479,12 +477,7 @@ const devices: Device[] = [
     icon: ServerIcon,
     category: "Servers",
   },
-  {
-    type: "dns-server",
-    label: "DNS Server",
-    icon: Globe,
-    category: "Servers",
-  },
+  { type: "dns-server", label: "DNS Server", icon: Globe, category: "Servers" },
   {
     type: "dhcp-server",
     label: "DHCP Server",
@@ -497,8 +490,7 @@ const devices: Device[] = [
     icon: ServerIcon,
     category: "Servers",
   },
-
-  // ===== Storage =====
+  // Storage
   {
     type: "nas",
     label: "NAS Storage",
@@ -523,8 +515,7 @@ const devices: Device[] = [
     icon: HardDriveIcon,
     category: "Storage",
   },
-
-  // ===== Cloud & Virtual =====
+  // Cloud
   { type: "cloud", label: "Cloud", icon: CloudIcon, category: "Cloud" },
   { type: "aws-cloud", label: "AWS Cloud", icon: CloudIcon, category: "Cloud" },
   {
@@ -541,15 +532,9 @@ const devices: Device[] = [
     category: "Cloud",
   },
   { type: "container", label: "Container", icon: Box, category: "Cloud" },
-  {
-    type: "kubernetes",
-    label: "Kubernetes",
-    icon: Hexagon,
-    category: "Cloud",
-  },
+  { type: "kubernetes", label: "Kubernetes", icon: Hexagon, category: "Cloud" },
   { type: "docker", label: "Docker", icon: Box, category: "Cloud" },
-
-  // ===== Network Services =====
+  // Services
   { type: "dns", label: "DNS Service", icon: GlobeLock, category: "Services" },
   { type: "dhcp", label: "DHCP Service", icon: Settings, category: "Services" },
   {
@@ -612,8 +597,7 @@ const devices: Device[] = [
     icon: Database,
     category: "Services",
   },
-
-  // ===== Specialized =====
+  // Specialized
   {
     type: "load-balancer",
     label: "Load Balancer",
@@ -632,20 +616,14 @@ const devices: Device[] = [
     icon: Activity,
     category: "Specialized",
   },
-  {
-    type: "qos",
-    label: "QoS Manager",
-    icon: Gauge,
-    category: "Specialized",
-  },
+  { type: "qos", label: "QoS Manager", icon: Gauge, category: "Specialized" },
   {
     type: "bandwidth-manager",
     label: "Bandwidth Manager",
     icon: Zap,
     category: "Specialized",
   },
-
-  // ===== IoT =====
+  // IoT
   {
     type: "iot-device",
     label: "IoT Device",
@@ -706,8 +684,7 @@ const devices: Device[] = [
     icon: Eye,
     category: "IoT & Smart",
   },
-
-  // ===== Monitoring =====
+  // Monitoring
   {
     type: "network-monitor",
     label: "Network Monitor",
@@ -744,16 +721,15 @@ const devices: Device[] = [
     icon: Shield,
     category: "Monitoring",
   },
-
-  // ===== Database =====
+  // Database
   { type: "database", label: "Database", icon: Database, category: "Storage" },
-
-  // ===== Tools =====
+  // Tools
   { type: "text" as DeviceType, label: "Text", icon: Type, category: "Tools" },
 ];
 
+// ===== CABLES DATA =====
 const cables: Cable[] = [
-  // ===== Wired Connections =====
+  // Wired
   {
     type: "ethernet",
     label: "Ethernet (CAT6)",
@@ -789,13 +765,7 @@ const cables: Cable[] = [
     category: "Wired",
     speed: "1-10 Mbps",
   },
-  {
-    type: "usb",
-    label: "USB",
-    icon: Usb,
-    category: "Wired",
-    speed: "5 Gbps",
-  },
+  { type: "usb", label: "USB", icon: Usb, category: "Wired", speed: "5 Gbps" },
   {
     type: "usb-c",
     label: "USB-C",
@@ -845,13 +815,7 @@ const cables: Cable[] = [
     category: "Wired",
     speed: "3.96 Gbps",
   },
-  {
-    type: "vga",
-    label: "VGA",
-    icon: Share2,
-    category: "Wired",
-    speed: "N/A",
-  },
+  { type: "vga", label: "VGA", icon: Share2, category: "Wired", speed: "N/A" },
   {
     type: "sata",
     label: "SATA",
@@ -880,8 +844,7 @@ const cables: Cable[] = [
     category: "Wired",
     speed: "N/A",
   },
-
-  // ===== Wireless Connections =====
+  // Wireless
   {
     type: "wifi6",
     label: "WiFi 6",
@@ -933,7 +896,8 @@ const cables: Cable[] = [
   },
 ];
 
-// Use a generic type for the filter function
+// ===== HELPER FUNCTIONS =====
+
 function filterItems<T extends CategoryItem>(items: T[], search: string): T[] {
   return items.filter(
     (item) =>
@@ -942,7 +906,6 @@ function filterItems<T extends CategoryItem>(items: T[], search: string): T[] {
   );
 }
 
-// Use a generic type for the group function
 function groupItems<T extends CategoryItem>(items: T[]): Record<string, T[]> {
   return items.reduce(
     (acc, item) => {
@@ -956,7 +919,20 @@ function groupItems<T extends CategoryItem>(items: T[]): Record<string, T[]> {
   );
 }
 
-export default function Sidebar() {
+// ===== SIDEBAR COMPONENT =====
+interface SidebarProps {
+  onAddDevice?: (type: DeviceType) => void;
+  onAddCable?: (type: CableType) => void;
+  isMobile?: boolean;
+  onItemAdded?: () => void;
+}
+
+export default function Sidebar({
+  onAddDevice,
+  onAddCable,
+  isMobile = false,
+  onItemAdded,
+}: SidebarProps) {
   const [collapsedCategories, setCollapsedCategories] = useState<
     Record<string, boolean>
   >({});
@@ -968,6 +944,7 @@ export default function Sidebar() {
     type: DeviceType | CableType,
     itemType: "device" | "cable",
   ) => {
+    if (isMobile) return;
     event.dataTransfer.setData("item-type", itemType);
     if (itemType === "device") {
       event.dataTransfer.setData("device-type", type as string);
@@ -975,7 +952,44 @@ export default function Sidebar() {
       event.dataTransfer.setData("cable-type", type as string);
     }
     event.dataTransfer.effectAllowed = "copy";
-    console.log(`Dragging ${itemType}: ${type}`);
+    toast.success(`${type} added to canvas!`, {
+      duration: 2000,
+      position: "bottom-right",
+    });
+  };
+
+  const handleItemClick = (
+    item: CategoryItem,
+    itemType: "device" | "cable",
+  ) => {
+    if (!isMobile) return;
+
+    const customEvent = new CustomEvent("sidebar-item-drop", {
+      detail: {
+        itemType: itemType,
+        type: item.type,
+        label: item.label,
+        category: item.category,
+        ...("speed" in item && { speed: item.speed }),
+      },
+    });
+
+    document.dispatchEvent(customEvent);
+
+    if (itemType === "device" && onAddDevice) {
+      onAddDevice(item.type as DeviceType);
+    } else if (itemType === "cable" && onAddCable) {
+      onAddCable(item.type as CableType);
+    }
+
+    if (onItemAdded) {
+      onItemAdded();
+    }
+
+    toast.success(`${item.label} added to canvas!`, {
+      duration: 2000,
+      position: "bottom-right",
+    });
   };
 
   const toggleCategory = (category: string) => {
@@ -993,7 +1007,6 @@ export default function Sidebar() {
   const currentGrouped =
     activeTab === "devices" ? groupedDevices : groupedCables;
 
-  // Get category icon - now returns LucideIcon component
   const getCategoryIcon = (category: string): LucideIcon => {
     return CATEGORY_ICONS[category] || Box;
   };
@@ -1003,9 +1016,10 @@ export default function Sidebar() {
       {/* Header */}
       <div className="p-4 sticky top-0 bg-[#111827] border-b border-[#1F2937] z-10">
         <h2 className="text-lg font-bold mb-1">Network Tools</h2>
-        <p className="text-xs text-gray-500">Drag and drop to canvas</p>
+        <p className="text-xs text-gray-500">
+          {isMobile ? "Tap to add to canvas" : "Drag and drop to canvas"}
+        </p>
 
-        {/* Tab Switcher */}
         <div className="mt-3 flex gap-2 bg-[#1F2937] p-1 rounded-lg">
           <button
             onClick={() => setActiveTab("devices")}
@@ -1029,7 +1043,6 @@ export default function Sidebar() {
           </button>
         </div>
 
-        {/* Search Bar */}
         <div className="mt-3">
           <input
             type="text"
@@ -1080,19 +1093,24 @@ export default function Sidebar() {
                     <div className="grid grid-cols-2 gap-2">
                       {categoryItems.map((item: CategoryItem) => {
                         const Icon = item.icon;
+                        const itemType =
+                          activeTab === "devices" ? "device" : "cable";
 
                         return (
                           <div
                             key={`${item.type}-${item.label}`}
-                            draggable
+                            draggable={!isMobile}
                             onDragStart={(e) =>
-                              onDragStart(
-                                e,
-                                item.type,
-                                activeTab === "devices" ? "device" : "cable",
-                              )
+                              !isMobile && onDragStart(e, item.type, itemType)
                             }
-                            className="flex items-center gap-2 p-2 bg-[#1F2937] rounded cursor-grab hover:bg-[#374151] transition-all hover:scale-105 active:cursor-grabbing group relative"
+                            onClick={() => handleItemClick(item, itemType)}
+                            className={`flex items-center gap-2 p-2 bg-[#1F2937] rounded ${
+                              isMobile
+                                ? "cursor-pointer active:scale-95 touch-manipulation"
+                                : "cursor-grab hover:bg-[#374151] hover:scale-105 active:cursor-grabbing"
+                            } transition-all group relative`}
+                            role={isMobile ? "button" : "none"}
+                            aria-label={`Add ${item.label} to canvas`}
                           >
                             <Icon
                               size={16}
@@ -1112,11 +1130,20 @@ export default function Sidebar() {
                                 </span>
                               )}
                             </div>
-                            <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition">
-                              <span className="text-[8px] text-gray-600">
-                                ↕
-                              </span>
-                            </div>
+                            {isMobile && (
+                              <div className="absolute top-1 right-1">
+                                <span className="text-[8px] text-[#00A5E0]">
+                                  ➕
+                                </span>
+                              </div>
+                            )}
+                            {!isMobile && (
+                              <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition">
+                                <span className="text-[8px] text-gray-600">
+                                  ↕
+                                </span>
+                              </div>
+                            )}
                           </div>
                         );
                       })}
@@ -1129,7 +1156,7 @@ export default function Sidebar() {
         )}
       </div>
 
-      {/* Footer Stats */}
+      {/* Footer */}
       <div className="sticky bottom-0 p-4 bg-[#111827] border-t border-[#1F2937] text-xs text-gray-500">
         <div className="flex justify-between">
           <span>Total {activeTab}</span>
@@ -1151,7 +1178,12 @@ export default function Sidebar() {
         </div>
         {activeTab === "cables" && (
           <div className="mt-2 pt-2 border-t border-[#1F2937] text-[10px] text-gray-600">
-            <span>💡 Tip: Drag cables between devices to connect them</span>
+            <span>
+              💡 Tip:{" "}
+              {isMobile
+                ? "Tap a cable to add it"
+                : "Drag cables between devices to connect them"}
+            </span>
           </div>
         )}
       </div>

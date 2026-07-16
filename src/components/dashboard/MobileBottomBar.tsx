@@ -20,7 +20,7 @@ export function MobileBottomBar({
   isOnline,
 }: MobileBottomBarProps) {
   return (
-    <div className="sticky bottom-0 z-30 bg-[#0B0F19]/95 backdrop-blur-sm border-t border-[#1F2937] py-2 px-4 flex justify-around">
+    <div className="sticky bottom-0 z-1 bg-[#0B0F19]/95 backdrop-blur-sm border-t border-[#1F2937] py-2 px-4 flex justify-around">
       <button
         onClick={onMenuToggle}
         className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-[#1F2937] transition"

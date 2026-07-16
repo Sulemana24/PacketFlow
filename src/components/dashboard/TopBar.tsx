@@ -28,8 +28,8 @@ export function TopBar({
   onLogout,
 }: TopBarProps) {
   return (
-    <div className="sticky top-0 z-30 bg-[#0B0F19]/95 backdrop-blur-sm border-b border-[#1F2937] px-4 py-3">
-      <div className="flex items-center justify-between">
+    <div className="sticky top-0 z-30 bg-[#0B0F19]/95 backdrop-blur-sm border-b border-[#1F2937] px-4 py-3 overflow-visible">
+      <div className="flex items-center justify-between overflow-visible">
         <div></div>
         <div className="hidden lg:flex items-center gap-3">
           <div className="w-8 h-8 bg-gradient-to-br from-[#00A5E0] to-[#0085C0] rounded-lg flex items-center justify-center">
@@ -43,7 +43,7 @@ export function TopBar({
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 overflow-visible">
           <NetworkStats
             stats={networkStats}
             onRefresh={onRefreshStats}

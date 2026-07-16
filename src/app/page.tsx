@@ -1,13 +1,14 @@
 "use client";
-
-import { useRouter } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { useMemo, useState } from "react";
 import { LogIn, Network, Radio, Layers, ArrowRight } from "lucide-react";
 import AuthModal from "@/components/AuthModal";
+import Logo from "../../public/images/favicon.jpg";
+import Footer from "@/components/Footer";
 
 export default function Home() {
-  const router = useRouter();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
 
@@ -42,7 +43,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen text-white relative overflow-hidden">
-      {/* Solar System Animated Background */}
       <div className="fixed inset-0 overflow-hidden">
         {/* Deep Space Gradient */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0B0F19] via-[#0B0F19]/95 to-[#0B0F19]" />
@@ -182,7 +182,7 @@ export default function Home() {
           </button>
 
           <a
-            href="#features"
+            href="/features"
             className="px-8 py-4 border border-gray-700 rounded-lg font-semibold text-lg hover:bg-white/5 transition-all backdrop-blur-sm"
           >
             Learn More
@@ -351,7 +351,7 @@ export default function Home() {
               <ArrowRight size={18} />
             </button>
             <a
-              href="#features"
+              href="/docs"
               className="px-8 py-4 border border-gray-700 rounded-lg font-semibold hover:bg-white/5 transition-all backdrop-blur-sm"
             >
               View Documentation
@@ -365,33 +365,61 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-[#00A5E0] to-[#0085C0] rounded-lg" />
-                <span className="text-xl font-bold tracking-tight text-white">
-                  PacketFlow
-                </span>
+              <div className="flex items-center gap-3 mb-4">
+                {/* Cisco-style Logo Badge */}
+                <div className="relative w-12 h-12 flex-shrink-0">
+                  <div className="w-8 h-8">
+                    <Image
+                      src={Logo}
+                      alt="PacketFlow Logo"
+                      className="w-full h-full object-contain rounded-lg"
+                    />
+                  </div>
+                </div>
+
+                {/* Brand Text with Subtitle */}
+                <div className="flex flex-col">
+                  <span className="text-2xl font-bold tracking-tight text-white leading-none">
+                    PacketFlow
+                  </span>
+                  <span className="text-xs text-[#00A5E0] font-mono tracking-widest uppercase mt-1">
+                    Network Simulation
+                  </span>
+                </div>
               </div>
-              <p className="text-sm text-gray-500">
-                Network simulation reimagined
+
+              <p className="text-sm text-gray-500 max-w-xs leading-relaxed">
+                Network simulation{" "}
+                <span className="text-[#00A5E0]">reimagined</span>
               </p>
             </div>
+
             <div>
               <h4 className="font-semibold mb-3">Product</h4>
               <ul className="space-y-2 text-sm text-gray-500">
                 <li>
-                  <a href="#" className="hover:text-[#00A5E0] transition">
+                  <Link
+                    href="/features"
+                    className="hover:text-[#00A5E0] transition"
+                  >
                     Features
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-[#00A5E0] transition">
+                  <Link
+                    href="/pricing"
+                    className="hover:text-[#00A5E0] transition"
+                  >
                     Pricing
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-[#00A5E0] transition">
+                  <Link
+                    href="/docs"
+                    className="hover:text-[#00A5E0] transition"
+                  >
                     Documentation
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -399,9 +427,12 @@ export default function Home() {
               <h4 className="font-semibold mb-3">Company</h4>
               <ul className="space-y-2 text-sm text-gray-500">
                 <li>
-                  <a href="#" className="hover:text-[#00A5E0] transition">
+                  <Link
+                    href="/about"
+                    className="hover:text-[#00A5E0] transition"
+                  >
                     About
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -409,14 +440,20 @@ export default function Home() {
               <h4 className="font-semibold mb-3">Legal</h4>
               <ul className="space-y-2 text-sm text-gray-500">
                 <li>
-                  <a href="#" className="hover:text-[#00A5E0] transition">
+                  <Link
+                    href="/privacy"
+                    className="hover:text-[#00A5E0] transition"
+                  >
                     Privacy
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-[#00A5E0] transition">
+                  <Link
+                    href="/terms"
+                    className="hover:text-[#00A5E0] transition"
+                  >
                     Terms
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
