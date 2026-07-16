@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { User, LogOut, Settings, ChevronDown } from "lucide-react";
 import { User as FirebaseUser } from "firebase/auth";
 import toast from "react-hot-toast";
@@ -17,14 +18,17 @@ export function UserProfile({
   onLogout,
 }: UserProfileProps) {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [popupPosition, setPopupPosition] = useState({ top: 0, right: 0 });
   const profileMenuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
-  // Close profile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
         profileMenuRef.current &&
-        !profileMenuRef.current.contains(e.target as Node)
+        !profileMenuRef.current.contains(e.target as Node) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(e.target as Node)
       ) {
         setIsProfileMenuOpen(false);
       }
@@ -33,6 +37,16 @@ export function UserProfile({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (isProfileMenuOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setPopupPosition({
+        top: rect.bottom + window.scrollY + 8,
+        right: window.innerWidth - rect.right + window.scrollX,
+      });
+    }
+  }, [isProfileMenuOpen]);
 
   const getUserDisplayName = (user: FirebaseUser | null) => {
     if (!user) return "Guest";
@@ -59,8 +73,9 @@ export function UserProfile({
   };
 
   return (
-    <div className="relative" ref={profileMenuRef}>
+    <>
       <button
+        ref={buttonRef}
         onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
         className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#1F2937] transition-all group"
       >
@@ -94,52 +109,63 @@ export function UserProfile({
         />
       </button>
 
-      {isProfileMenuOpen && (
-        <div className="absolute right-0 mt-2 w-64 bg-[#1F2937] rounded-lg shadow-xl border border-[#374151] overflow-hidden z-50">
-          <div className="px-4 py-3 border-b border-[#374151]">
-            <p className="text-sm font-medium text-white">
-              {getUserDisplayName(user)}
-            </p>
-            <p className="text-xs text-gray-400 mt-1">
-              {user?.email ||
-                (user?.isAnonymous ? "Guest Account" : "No email")}
-            </p>
-            {user?.isAnonymous && (
-              <p className="text-xs text-[#00A5E0] mt-1">
-                ℹ️ Guest account - temporary
+      {isProfileMenuOpen &&
+        createPortal(
+          <div
+            ref={profileMenuRef}
+            style={{
+              position: "fixed",
+              top: `${popupPosition.top}px`,
+              right: `${popupPosition.right}px`,
+              zIndex: 9999,
+            }}
+            className="w-64 bg-[#1F2937] rounded-lg shadow-xl border border-[#374151] overflow-hidden"
+          >
+            <div className="px-4 py-3 border-b border-[#374151]">
+              <p className="text-sm font-medium text-white">
+                {getUserDisplayName(user)}
               </p>
-            )}
-          </div>
+              <p className="text-xs text-gray-400 mt-1">
+                {user?.email ||
+                  (user?.isAnonymous ? "Guest Account" : "No email")}
+              </p>
+              {user?.isAnonymous && (
+                <p className="text-xs text-[#00A5E0] mt-1">
+                  ℹ️ Guest account - temporary
+                </p>
+              )}
+            </div>
 
-          <div className="py-2">
-            <button
-              onClick={() => setIsProfileMenuOpen(false)}
-              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-[#374151] transition-colors"
-            >
-              <User size={16} className="text-[#00A5E0]" />
-              <span>Profile Settings</span>
-            </button>
+            <div className="py-2">
+              <button
+                onClick={() => setIsProfileMenuOpen(false)}
+                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-[#374151] transition-colors"
+              >
+                <User size={16} className="text-[#00A5E0]" />
+                <span>Profile Settings</span>
+              </button>
 
-            <button
-              onClick={() => setIsProfileMenuOpen(false)}
-              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-[#374151] transition-colors"
-            >
-              <Settings size={16} className="text-[#00A5E0]" />
-              <span>Preferences</span>
-            </button>
+              <button
+                onClick={() => setIsProfileMenuOpen(false)}
+                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-[#374151] transition-colors"
+              >
+                <Settings size={16} className="text-[#00A5E0]" />
+                <span>Preferences</span>
+              </button>
 
-            <div className="border-t border-[#374151] my-1"></div>
+              <div className="border-t border-[#374151] my-1"></div>
 
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-[#374151] transition-colors"
-            >
-              <LogOut size={16} />
-              <span>Logout</span>
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-[#374151] transition-colors"
+              >
+                <LogOut size={16} />
+                <span>Logout</span>
+              </button>
+            </div>
+          </div>,
+          document.body,
+        )}
+    </>
   );
 }

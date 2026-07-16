@@ -10,7 +10,6 @@ import ReactFlow, {
   Connection,
   Edge,
   MarkerType,
-  ReactFlowProvider,
   ReactFlowInstance,
 } from "reactflow";
 import "reactflow/dist/style.css";
@@ -20,7 +19,6 @@ import TextNode from "./TextNode";
 import { findEdgePath } from "../../utils/findEdgePath";
 import CustomNode from "./CustomNode";
 import {
-  // Core Network
   Router,
   GitMerge,
   Shield,
@@ -30,7 +28,6 @@ import {
   RefreshCw,
   Globe,
   Scale,
-  // End Devices
   Monitor,
   Server,
   Printer,
@@ -38,18 +35,13 @@ import {
   Tablet,
   Smartphone,
   Laptop,
-  // Wireless
   Wifi as WifiIcon,
   Gamepad2,
-  // Security
   Eye,
   ShieldCheck,
   Lock,
-  // Storage
   HardDrive,
-  // Cloud
   Cloud,
-  // Additional
   Box,
   Radio,
   Signal,
@@ -72,6 +64,8 @@ import {
   Radar,
   Hexagon,
   ShieldAlert,
+  Type,
+  Settings,
 } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 
@@ -96,22 +90,90 @@ export type DeviceType =
   | "ip-phone"
   | "tablet"
   | "smartphone"
+  | "workstation"
+  | "thin-client"
+  | "terminal"
+  | "user"
+  | "building"
   // Wireless
   | "wireless-ap"
   | "access-point"
   | "controller"
+  | "wireless-controller"
+  | "mesh-node"
+  | "wireless-bridge"
+  | "wi-fi-analyzer"
   // Security
   | "ids"
   | "ips"
   | "vpn-concentrator"
+  | "vpn-gateway"
+  | "security-appliance"
+  | "next-gen-firewall"
+  | "web-application-firewall"
+  | "endpoint-security"
+  | "zero-trust"
+  // Servers
+  | "file-server"
+  | "web-server"
+  | "mail-server"
+  | "dns-server"
+  | "dhcp-server"
+  | "app-server"
   // Storage
   | "nas"
   | "san-switch"
-  // Cloud
+  | "storage-array"
+  | "backup-server"
+  // Cloud & Virtual
   | "cloud"
+  | "aws-cloud"
+  | "azure-cloud"
+  | "gcp-cloud"
+  | "virtual-machine"
+  | "container"
+  | "kubernetes"
+  | "docker"
+  // Services
+  | "dns"
+  | "dhcp"
+  | "proxy"
+  | "web-proxy"
+  | "reverse-proxy"
+  | "radius-server"
+  | "tacacs-server"
+  | "syslog-server"
+  | "ntp-server"
+  | "snmp-server"
+  | "sftp-server"
+  | "ftp-server"
+  // Specialized
+  | "wan-optimizer"
+  | "traffic-shaping"
+  | "qos"
+  | "bandwidth-manager"
+  // IoT
+  | "iot-device"
+  | "smart-sensor"
+  | "smart-camera"
+  | "smart-lock"
+  | "smart-light"
+  | "smart-thermostat"
+  | "smart-speaker"
+  | "smart-tv"
+  | "smart-watch"
+  | "smart-glasses"
+  // Monitoring
+  | "network-monitor"
+  | "performance-monitor"
+  | "traffic-analyzer"
+  | "packet-analyzer"
+  | "network-scanner"
+  | "vulnerability-scanner"
   // Other
-  | "hub"
-  | "bridge";
+  | "internet"
+  | "database"
+  | "text";
 
 // ===== COMPREHENSIVE CABLE TYPES =====
 export type CableType =
@@ -138,7 +200,15 @@ export type CableType =
   | "sas"
   // Other
   | "console"
-  | "patch-cord";
+  | "patch-cord"
+  // Wireless
+  | "wifi6"
+  | "wifi5"
+  | "cellular5g"
+  | "cellular4g"
+  | "bluetooth"
+  | "zigbee"
+  | "lorawan";
 
 const nodeTypes = {
   custom: CustomNode,
@@ -156,7 +226,6 @@ const getCableStyle = (type: CableType) => {
     CableType,
     { stroke: string; strokeWidth: number; strokeDasharray?: string }
   > = {
-    // Copper cables
     ethernet: { stroke: "#10B981", strokeWidth: 2 },
     coaxial: { stroke: "#F59E0B", strokeWidth: 2.5 },
     serial: { stroke: "#8B5CF6", strokeWidth: 2 },
@@ -164,22 +233,24 @@ const getCableStyle = (type: CableType) => {
     "usb-c": { stroke: "#6366F1", strokeWidth: 2 },
     thunderbolt: { stroke: "#EC4899", strokeWidth: 2 },
     firewire: { stroke: "#F472B6", strokeWidth: 2 },
-    // Fiber cables
     "fiber-single-mode": { stroke: "#00A5E0", strokeWidth: 3 },
     "fiber-multi-mode": { stroke: "#06B6D4", strokeWidth: 2.5 },
-    // Power
     power: { stroke: "#EF4444", strokeWidth: 3 },
-    // Display
     hdmi: { stroke: "#F97316", strokeWidth: 2.5 },
     displayport: { stroke: "#A855F7", strokeWidth: 2 },
     dvi: { stroke: "#8B5CF6", strokeWidth: 2 },
     vga: { stroke: "#6B7280", strokeWidth: 2 },
-    // Storage
     sata: { stroke: "#22D3EE", strokeWidth: 2 },
     sas: { stroke: "#2DD4BF", strokeWidth: 2 },
-    // Other
     console: { stroke: "#FCD34D", strokeWidth: 2, strokeDasharray: "5,5" },
     "patch-cord": { stroke: "#34D399", strokeWidth: 1.5 },
+    wifi6: { stroke: "#FCD34D", strokeWidth: 2, strokeDasharray: "8,4" },
+    wifi5: { stroke: "#FBBF24", strokeWidth: 2, strokeDasharray: "8,4" },
+    cellular5g: { stroke: "#A78BFA", strokeWidth: 2, strokeDasharray: "6,4" },
+    cellular4g: { stroke: "#8B5CF6", strokeWidth: 2, strokeDasharray: "6,4" },
+    bluetooth: { stroke: "#3B82F6", strokeWidth: 2, strokeDasharray: "4,4" },
+    zigbee: { stroke: "#F59E0B", strokeWidth: 1.5, strokeDasharray: "3,3" },
+    lorawan: { stroke: "#EF4444", strokeWidth: 1.5, strokeDasharray: "3,3" },
   };
   return styles[type] || { stroke: "#6B7280", strokeWidth: 2 };
 };
@@ -187,7 +258,6 @@ const getCableStyle = (type: CableType) => {
 // ===== DEVICE ICONS AND LABELS =====
 const getDeviceIcon = (type: DeviceType): LucideIcon => {
   const icons: Record<DeviceType, LucideIcon> = {
-    // Core Network
     router: Router,
     switch: GitMerge,
     firewall: Shield,
@@ -198,7 +268,6 @@ const getDeviceIcon = (type: DeviceType): LucideIcon => {
     gateway: Globe,
     "multilayer-switch": GitMerge,
     "load-balancer": Scale,
-    // End Devices
     pc: Monitor,
     server: Server,
     laptop: Laptop,
@@ -206,26 +275,86 @@ const getDeviceIcon = (type: DeviceType): LucideIcon => {
     "ip-phone": Phone,
     tablet: Tablet,
     smartphone: Smartphone,
-    // Wireless
+    workstation: Monitor,
+    "thin-client": Monitor,
+    terminal: Monitor,
+    user: Monitor,
+    building: Monitor,
     "wireless-ap": WifiIcon,
     "access-point": WifiIcon,
     controller: Gamepad2,
-    // Security
+    "wireless-controller": Signal,
+    "mesh-node": Radio,
+    "wireless-bridge": Radio,
+    "wi-fi-analyzer": Radar,
     ids: Eye,
     ips: ShieldCheck,
     "vpn-concentrator": Lock,
-    // Storage
+    "vpn-gateway": Lock,
+    "security-appliance": ShieldAlert,
+    "next-gen-firewall": ShieldCheck,
+    "web-application-firewall": ShieldAlert,
+    "endpoint-security": ShieldCheck,
+    "zero-trust": LockKeyhole,
+    "file-server": Server,
+    "web-server": Server,
+    "mail-server": Server,
+    "dns-server": Server,
+    "dhcp-server": Server,
+    "app-server": Server,
     nas: HardDrive,
     "san-switch": Database,
-    // Cloud
+    "storage-array": HardDrive,
+    "backup-server": Database,
     cloud: Cloud,
+    "aws-cloud": Cloud,
+    "azure-cloud": Cloud,
+    "gcp-cloud": Cloud,
+    "virtual-machine": Cpu,
+    container: Box,
+    kubernetes: Hexagon,
+    docker: Box,
+    dns: GlobeLock,
+    dhcp: Globe,
+    proxy: Shield,
+    "web-proxy": Shield,
+    "reverse-proxy": Shield,
+    "radius-server": KeyRound,
+    "tacacs-server": Fingerprint,
+    "syslog-server": Scroll,
+    "ntp-server": Clock,
+    "snmp-server": Activity,
+    "sftp-server": Database,
+    "ftp-server": Database,
+    "wan-optimizer": Gauge,
+    "traffic-shaping": Activity,
+    qos: Gauge,
+    "bandwidth-manager": Zap,
+    "iot-device": Box,
+    "smart-sensor": Scan,
+    "smart-camera": SwitchCamera,
+    "smart-lock": LockKeyhole,
+    "smart-light": Zap,
+    "smart-thermostat": Settings,
+    "smart-speaker": Volume2,
+    "smart-tv": Monitor,
+    "smart-watch": Watch,
+    "smart-glasses": Eye,
+    "network-monitor": Activity,
+    "performance-monitor": Gauge,
+    "traffic-analyzer": Radar,
+    "packet-analyzer": Search,
+    "network-scanner": Search,
+    "vulnerability-scanner": ShieldAlert,
+    internet: Globe,
+    database: Database,
+    text: Type,
   };
   return icons[type] || Box;
 };
 
 const getDeviceLabel = (type: DeviceType): string => {
   const labels: Record<DeviceType, string> = {
-    // Core Network
     router: "Router",
     switch: "Switch",
     firewall: "Firewall",
@@ -236,7 +365,6 @@ const getDeviceLabel = (type: DeviceType): string => {
     gateway: "Gateway",
     "multilayer-switch": "MLS",
     "load-balancer": "Load Balancer",
-    // End Devices
     pc: "PC",
     server: "Server",
     laptop: "Laptop",
@@ -244,26 +372,86 @@ const getDeviceLabel = (type: DeviceType): string => {
     "ip-phone": "IP Phone",
     tablet: "Tablet",
     smartphone: "Smartphone",
-    // Wireless
+    workstation: "Workstation",
+    "thin-client": "Thin Client",
+    terminal: "Terminal",
+    user: "User",
+    building: "Building",
     "wireless-ap": "WAP",
     "access-point": "AP",
     controller: "Controller",
-    // Security
+    "wireless-controller": "Wireless Controller",
+    "mesh-node": "Mesh Node",
+    "wireless-bridge": "Wireless Bridge",
+    "wi-fi-analyzer": "Wi-Fi Analyzer",
     ids: "IDS",
     ips: "IPS",
-    "vpn-concentrator": "VPN",
-    // Storage
+    "vpn-concentrator": "VPN Concentrator",
+    "vpn-gateway": "VPN Gateway",
+    "security-appliance": "Security Appliance",
+    "next-gen-firewall": "NGFW",
+    "web-application-firewall": "WAF",
+    "endpoint-security": "Endpoint Security",
+    "zero-trust": "Zero Trust",
+    "file-server": "File Server",
+    "web-server": "Web Server",
+    "mail-server": "Mail Server",
+    "dns-server": "DNS Server",
+    "dhcp-server": "DHCP Server",
+    "app-server": "App Server",
     nas: "NAS",
     "san-switch": "SAN Switch",
-    // Cloud
+    "storage-array": "Storage Array",
+    "backup-server": "Backup Server",
     cloud: "Cloud",
+    "aws-cloud": "AWS Cloud",
+    "azure-cloud": "Azure Cloud",
+    "gcp-cloud": "GCP Cloud",
+    "virtual-machine": "VM",
+    container: "Container",
+    kubernetes: "Kubernetes",
+    docker: "Docker",
+    dns: "DNS",
+    dhcp: "DHCP",
+    proxy: "Proxy",
+    "web-proxy": "Web Proxy",
+    "reverse-proxy": "Reverse Proxy",
+    "radius-server": "RADIUS",
+    "tacacs-server": "TACACS+",
+    "syslog-server": "Syslog",
+    "ntp-server": "NTP",
+    "snmp-server": "SNMP",
+    "sftp-server": "SFTP",
+    "ftp-server": "FTP",
+    "wan-optimizer": "WAN Optimizer",
+    "traffic-shaping": "Traffic Shaping",
+    qos: "QoS",
+    "bandwidth-manager": "Bandwidth Manager",
+    "iot-device": "IoT Device",
+    "smart-sensor": "Smart Sensor",
+    "smart-camera": "Smart Camera",
+    "smart-lock": "Smart Lock",
+    "smart-light": "Smart Light",
+    "smart-thermostat": "Smart Thermostat",
+    "smart-speaker": "Smart Speaker",
+    "smart-tv": "Smart TV",
+    "smart-watch": "Smart Watch",
+    "smart-glasses": "Smart Glasses",
+    "network-monitor": "Network Monitor",
+    "performance-monitor": "Performance Monitor",
+    "traffic-analyzer": "Traffic Analyzer",
+    "packet-analyzer": "Packet Analyzer",
+    "network-scanner": "Network Scanner",
+    "vulnerability-scanner": "Vulnerability Scanner",
+    internet: "Internet",
+    database: "Database",
+    text: "Text",
   };
-  return labels[type] || type.toUpperCase();
+  return labels[type] || type.toUpperCase().replace("-", " ");
 };
 
 const getDeviceColor = (type: DeviceType): string => {
   const colors: Record<DeviceType, string> = {
-    // Core Network - Blue family
     router: "#3B82F6",
     switch: "#10B981",
     firewall: "#EF4444",
@@ -274,7 +462,6 @@ const getDeviceColor = (type: DeviceType): string => {
     gateway: "#06B6D4",
     "multilayer-switch": "#14B8A6",
     "load-balancer": "#6366F1",
-    // End Devices - Green/Teal family
     pc: "#34D399",
     server: "#60A5FA",
     laptop: "#34D399",
@@ -282,28 +469,93 @@ const getDeviceColor = (type: DeviceType): string => {
     "ip-phone": "#A78BFA",
     tablet: "#60A5FA",
     smartphone: "#60A5FA",
-    // Wireless - Yellow/Orange
+    workstation: "#34D399",
+    "thin-client": "#6B7280",
+    terminal: "#6B7280",
+    user: "#34D399",
+    building: "#F59E0B",
     "wireless-ap": "#FCD34D",
     "access-point": "#FCD34D",
     controller: "#F59E0B",
-    // Security - Red/Pink
+    "wireless-controller": "#F59E0B",
+    "mesh-node": "#FCD34D",
+    "wireless-bridge": "#FCD34D",
+    "wi-fi-analyzer": "#FCD34D",
     ids: "#F87171",
     ips: "#FCA5A5",
     "vpn-concentrator": "#EC4899",
-    // Storage - Cyan
+    "vpn-gateway": "#EC4899",
+    "security-appliance": "#EF4444",
+    "next-gen-firewall": "#EF4444",
+    "web-application-firewall": "#EF4444",
+    "endpoint-security": "#EF4444",
+    "zero-trust": "#EF4444",
+    "file-server": "#8B5CF6",
+    "web-server": "#8B5CF6",
+    "mail-server": "#8B5CF6",
+    "dns-server": "#8B5CF6",
+    "dhcp-server": "#8B5CF6",
+    "app-server": "#8B5CF6",
     nas: "#67E8F9",
     "san-switch": "#67E8F9",
-    // Cloud - Purple
+    "storage-array": "#67E8F9",
+    "backup-server": "#67E8F9",
     cloud: "#A78BFA",
+    "aws-cloud": "#F97316",
+    "azure-cloud": "#3B82F6",
+    "gcp-cloud": "#34D399",
+    "virtual-machine": "#8B5CF6",
+    container: "#6366F1",
+    kubernetes: "#6366F1",
+    docker: "#6366F1",
+    dns: "#06B6D4",
+    dhcp: "#06B6D4",
+    proxy: "#8B5CF6",
+    "web-proxy": "#8B5CF6",
+    "reverse-proxy": "#8B5CF6",
+    "radius-server": "#8B5CF6",
+    "tacacs-server": "#8B5CF6",
+    "syslog-server": "#6B7280",
+    "ntp-server": "#6B7280",
+    "snmp-server": "#6B7280",
+    "sftp-server": "#6B7280",
+    "ftp-server": "#6B7280",
+    "wan-optimizer": "#F97316",
+    "traffic-shaping": "#F97316",
+    qos: "#F97316",
+    "bandwidth-manager": "#F97316",
+    "iot-device": "#10B981",
+    "smart-sensor": "#10B981",
+    "smart-camera": "#10B981",
+    "smart-lock": "#10B981",
+    "smart-light": "#10B981",
+    "smart-thermostat": "#10B981",
+    "smart-speaker": "#10B981",
+    "smart-tv": "#10B981",
+    "smart-watch": "#10B981",
+    "smart-glasses": "#10B981",
+    "network-monitor": "#6366F1",
+    "performance-monitor": "#6366F1",
+    "traffic-analyzer": "#6366F1",
+    "packet-analyzer": "#6366F1",
+    "network-scanner": "#6366F1",
+    "vulnerability-scanner": "#6366F1",
+    internet: "#06B6D4",
+    database: "#A78BFA",
+    text: "#6B7280",
   };
   return colors[type] || "#6B7280";
 };
 
 interface NetworkCanvasProps {
   onDropNode?: (type: DeviceType, position: { x: number; y: number }) => void;
+  isMobile?: boolean;
 }
 
-export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
+export default function NetworkCanvas({
+  onDropNode,
+  isMobile = false,
+}: NetworkCanvasProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
@@ -321,22 +573,168 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
     y: number;
   } | null>(null);
 
-  // Use a ref to store animation frame ID for cleanup
   const animationRef = useRef<number | null>(null);
-  // Use a ref to store the animation function for recursive calls
   const animatePacketRef = useRef<
     ((path: string[], index: number) => void) | null
   >(null);
 
-  // Listen for cable drag events from sidebar
+  // ===== Toast notification for feedback =====
+  const showToast = useCallback(
+    (message: string, type: "info" | "success" | "error" = "info") => {
+      const colors = {
+        info: "border-[#00A5E0]",
+        success: "border-green-500",
+        error: "border-red-500",
+      };
+
+      const toast = document.createElement("div");
+      toast.className = `fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-[#1F2937] border ${colors[type]} rounded-lg px-4 py-2 z-[9999] text-white text-sm shadow-lg transition-all duration-300`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        setTimeout(() => {
+          document.body.removeChild(toast);
+        }, 300);
+      }, 2000);
+    },
+    [],
+  );
+
+  // ===== Handle sidebar item drop via custom event =====
+  useEffect(() => {
+    const handleSidebarDrop = (event: CustomEvent) => {
+      const { itemType, type, label, category, speed } = event.detail;
+
+      console.log(`📦 Sidebar drop event: ${itemType} - ${type} (${label})`);
+
+      if (!reactFlowInstance) {
+        console.error("No reactFlowInstance!");
+        showToast("Error: Canvas not ready", "error");
+        return;
+      }
+
+      // Get viewport center
+      const viewportCenter = reactFlowInstance.screenToFlowPosition({
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2,
+      });
+
+      // Add slight random offset to avoid stacking
+      const randomOffset = () => (Math.random() - 0.5) * 200;
+      const position = {
+        x: viewportCenter.x + randomOffset(),
+        y: viewportCenter.y + randomOffset(),
+      };
+
+      let newNodeId: string | null = null;
+
+      if (itemType === "device") {
+        const typedDeviceType = type as DeviceType;
+
+        if (typedDeviceType === "text") {
+          const newNode: Node = {
+            id: crypto.randomUUID(),
+            type: "text",
+            position,
+            data: {
+              text: "Double-click to edit",
+              fontSize: 14,
+              color: "#ffffff",
+            },
+            style: {
+              background: "#1F2937",
+              border: "2px solid #00A5E0",
+              borderRadius: "8px",
+              padding: "10px",
+            },
+          };
+          newNodeId = newNode.id;
+          setNodes((nds) => [...nds, newNode]);
+          showToast(`📝 Added text node`, "success");
+        } else {
+          const IconComponent = getDeviceIcon(typedDeviceType);
+          const newNode: Node<NetworkNodeData> = {
+            id: crypto.randomUUID(),
+            type: "custom",
+            position,
+            data: {
+              type: typedDeviceType,
+              label: label || getDeviceLabel(typedDeviceType),
+              icon: IconComponent,
+              status: "online",
+            },
+            style: {
+              background: "#1F2937",
+              color: "#fff",
+              border: `2px solid ${getDeviceColor(typedDeviceType)}`,
+              borderRadius: "8px",
+              padding: "10px",
+              width: 130,
+            },
+          };
+          newNodeId = newNode.id;
+          setNodes((nds) => [...nds, newNode]);
+          onDropNode?.(typedDeviceType, position);
+          showToast(
+            `✅ Added ${label || getDeviceLabel(typedDeviceType)}`,
+            "success",
+          );
+        }
+
+        // Pan to the new node on mobile
+        if (isMobile && newNodeId) {
+          setTimeout(() => {
+            const node = reactFlowInstance.getNode(newNodeId!);
+            if (node) {
+              // Center the view on the new node
+              reactFlowInstance.fitView({
+                nodes: [node],
+                padding: 0.3,
+                duration: 500,
+              });
+              // Zoom in slightly to make it more visible
+              setTimeout(() => {
+                reactFlowInstance.zoomTo(1.2, {
+                  duration: 300,
+                });
+              }, 400);
+            }
+          }, 100);
+        }
+      } else if (itemType === "cable") {
+        const cableType = type as CableType;
+        setConnectionMode(cableType);
+        document.body.style.cursor = "crosshair";
+        showToast(`🔌 Click two devices to connect with ${label}`, "info");
+      }
+    };
+
+    document.addEventListener(
+      "sidebar-item-drop",
+      handleSidebarDrop as EventListener,
+    );
+
+    return () => {
+      document.removeEventListener(
+        "sidebar-item-drop",
+        handleSidebarDrop as EventListener,
+      );
+    };
+  }, [reactFlowInstance, setNodes, onDropNode, showToast, isMobile]);
+
+  // ===== Listen for cable drag events from sidebar (desktop only) =====
   useEffect(() => {
     const handleDragStart = (event: DragEvent) => {
+      if (isMobile) return;
       const itemType = event.dataTransfer?.getData("item-type");
       const cableType = event.dataTransfer?.getData("cable-type");
 
       if (itemType === "cable" && cableType) {
         setConnectionMode(cableType as CableType);
         document.body.style.cursor = "crosshair";
+        showToast(`🔌 Click two devices to connect`, "info");
       }
     };
 
@@ -346,8 +744,9 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
       document.removeEventListener("dragstart", handleDragStart);
       document.body.style.cursor = "default";
     };
-  }, []);
+  }, [isMobile, showToast]);
 
+  // ===== Connection handling =====
   const onConnect = useCallback(
     (connection: Connection) => {
       if (!connection.source || !connection.target) return;
@@ -371,8 +770,10 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
 
       setEdges((eds) => addEdge(newEdge, eds));
       setConnectionMode(null);
+      document.body.style.cursor = "default";
+      showToast(`🔗 Connected devices with ${cableType}`, "success");
     },
-    [setEdges, connectionMode],
+    [setEdges, connectionMode, showToast],
   );
 
   const resetConnectionMode = useCallback(() => {
@@ -389,6 +790,7 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
     );
   }, [setNodes]);
 
+  // ===== Node click for cable connection =====
   const onNodeClick = useCallback(
     (event: React.MouseEvent, node: Node) => {
       event.stopPropagation();
@@ -430,6 +832,7 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
               data: { cableType: connectionMode },
             };
             setEdges((eds) => eds.concat(newEdge));
+            showToast(`🔗 Connected devices with ${connectionMode}`, "success");
           }
           resetConnectionMode();
         }
@@ -444,14 +847,18 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
       setNodes,
       setEdges,
       resetConnectionMode,
+      showToast,
     ],
   );
 
+  // ===== Drop handler (desktop drag-and-drop) =====
   const onDrop = useCallback(
     (event: React.DragEvent) => {
       event.preventDefault();
       event.stopPropagation();
       setIsDragOver(false);
+
+      if (isMobile) return;
 
       const itemType = event.dataTransfer.getData("item-type");
       const deviceType = event.dataTransfer.getData("device-type");
@@ -467,7 +874,6 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
         y: event.clientY,
       });
 
-      // Handle device drop
       if (itemType === "device" && deviceType) {
         console.log(`✅ Adding device: ${deviceType}`);
 
@@ -500,6 +906,7 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
               type: typedDeviceType,
               label: getDeviceLabel(typedDeviceType),
               icon: IconComponent,
+              status: "online",
             },
             style: {
               background: "#1F2937",
@@ -514,15 +921,14 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
         }
 
         onDropNode?.(deviceType as DeviceType, position);
-      }
-      // Handle cable drop
-      else if (itemType === "cable" && cableType) {
+      } else if (itemType === "cable" && cableType) {
         console.log(`🔌 Enabling cable mode: ${cableType}`);
         setConnectionMode(cableType as CableType);
         document.body.style.cursor = "crosshair";
+        showToast(`🔌 Click two devices to connect`, "info");
       }
     },
-    [reactFlowInstance, setNodes, onDropNode],
+    [reactFlowInstance, setNodes, onDropNode, isMobile, showToast],
   );
 
   const onDragOver = useCallback((event: React.DragEvent) => {
@@ -536,7 +942,7 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
     setIsDragOver(false);
   }, []);
 
-  // Handle delete key
+  // ===== Handle delete key =====
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Delete" || event.key === "Backspace") {
@@ -550,24 +956,32 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
             ),
           );
           setSelectedNodeId(null);
+          showToast(`🗑️ Deleted device`, "info");
         }
       } else if (event.key === "Escape" && connectionMode) {
         resetConnectionMode();
+        showToast(`❌ Cancelled connection`, "info");
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedNodeId, setNodes, setEdges, connectionMode, resetConnectionMode]);
+  }, [
+    selectedNodeId,
+    setNodes,
+    setEdges,
+    connectionMode,
+    resetConnectionMode,
+    showToast,
+  ]);
 
   const onPaneClick = useCallback(() => {
     setSelectedNodeId(null);
   }, []);
 
-  // Define the animation function using useCallback with proper dependencies
+  // ===== Packet animation =====
   const animatePacket = useCallback(
     (path: string[], index: number) => {
-      // Cancel any existing animation
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
         animationRef.current = null;
@@ -592,7 +1006,6 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
 
       const animate = (time: number) => {
         const progress = Math.min((time - startTime) / duration, 1);
-        // Use easeInOut for smoother animation
         const eased =
           progress < 0.5
             ? 2 * progress * progress
@@ -607,9 +1020,7 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
           animationRef.current = requestAnimationFrame(animate);
         } else {
           setPacket({ path, index: index + 1 });
-          // Use setTimeout to avoid stack overflow and allow state updates
           setTimeout(() => {
-            // Use the ref to call the function recursively
             if (animatePacketRef.current) {
               animatePacketRef.current(path, index + 1);
             }
@@ -622,12 +1033,10 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
     [reactFlowInstance],
   );
 
-  // Set the ref to point to the animatePacket function
   useEffect(() => {
     animatePacketRef.current = animatePacket;
   }, [animatePacket]);
 
-  // Cleanup animation on unmount
   useEffect(() => {
     return () => {
       if (animationRef.current) {
@@ -638,7 +1047,10 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
   }, []);
 
   const sendPacket = useCallback(() => {
-    if (nodes.length < 2) return;
+    if (nodes.length < 2) {
+      showToast("⚠️ Need at least 2 devices", "error");
+      return;
+    }
 
     const source = nodes[0].id;
     const target = nodes[nodes.length - 1].id;
@@ -646,17 +1058,14 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
     const path = findEdgePath(edges, source, target);
 
     if (!path || path.length < 2) {
-      console.log("No valid path found");
+      showToast("⚠️ No valid path found", "error");
       return;
     }
 
-    setPacket({
-      path,
-      index: 0,
-    });
-
+    setPacket({ path, index: 0 });
     animatePacket(path, 0);
-  }, [nodes, edges, animatePacket]);
+    showToast(`📦 Sending packet...`, "info");
+  }, [nodes, edges, animatePacket, showToast]);
 
   return (
     <div
@@ -668,7 +1077,7 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
       onDragLeave={onDragLeave}
     >
       {/* Top Toolbar */}
-      <div className="absolute top-4 right-4 z-50 flex gap-2">
+      <div className="absolute top-4 right-4 z-50 flex gap-2 flex-wrap">
         <button
           onClick={sendPacket}
           className="px-4 py-2 bg-[#00A5E0] hover:bg-[#00A5E0]/90 rounded-lg font-semibold transition shadow-lg text-sm"
@@ -690,10 +1099,25 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
                 ),
               );
               setSelectedNodeId(null);
+              showToast(`🗑️ Deleted device`, "info");
             }}
             className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg font-semibold transition shadow-lg text-sm"
           >
             Delete Selected
+          </button>
+        )}
+
+        {nodes.length > 0 && (
+          <button
+            onClick={() => {
+              setNodes([]);
+              setEdges([]);
+              setSelectedNodeId(null);
+              showToast(`🧹 Cleared canvas`, "info");
+            }}
+            className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg font-semibold transition shadow-lg text-sm"
+          >
+            Clear All
           </button>
         )}
       </div>
@@ -721,7 +1145,21 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
         </div>
       )}
 
-      {/* PACKET UI */}
+      {/* Mobile Hint */}
+      {isMobile && nodes.length === 0 && (
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 text-center">
+          <div className="bg-[#1F2937]/80 backdrop-blur-sm border border-[#1F2937] rounded-lg px-6 py-4 max-w-xs">
+            <p className="text-gray-400 text-sm">
+              👆 Tap devices from the sidebar to add them here
+            </p>
+            <p className="text-gray-500 text-xs mt-2">
+              Or drag & drop on desktop
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Packet Animation */}
       {packet && (
         <div className="absolute top-16 left-4 z-50 bg-black/80 px-3 py-1 rounded-lg">
           <span className="text-yellow-400 text-sm">
@@ -730,7 +1168,7 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
         </div>
       )}
 
-      {/* CANVAS */}
+      {/* Canvas */}
       <div ref={reactFlowWrapper} className="w-full h-full">
         {packetPosition && (
           <div
@@ -739,6 +1177,7 @@ export default function NetworkCanvas({ onDropNode }: NetworkCanvasProps) {
               left: packetPosition.x,
               top: packetPosition.y,
               transform: "translate(-50%, -50%)",
+              boxShadow: "0 0 20px rgba(250, 204, 21, 0.5)",
             }}
           />
         )}

@@ -1,4 +1,3 @@
-// types/network.ts
 import { LucideIcon } from "lucide-react";
 import {
   // Core Network
